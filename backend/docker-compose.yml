@@ -1,0 +1,28 @@
+# 로컬 개발용 MySQL 8.0 (설계서 5장: 개발·통합·동시성 검증 DB 통일)
+services:
+  db:
+    image: mysql:8.0
+    container_name: lsrs-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pw
+      MYSQL_DATABASE: lsrs
+      MYSQL_USER: lsrs
+      MYSQL_PASSWORD: lsrs_pw
+      TZ: Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+09:00
+      - --transaction-isolation=READ-COMMITTED
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_pw"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  mysql-data:
