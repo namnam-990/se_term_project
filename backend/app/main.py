@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.exceptions import AppError, app_error_handler, validation_error_handler
-from app.routers import auth, pages, reservations, seats
+from app.routers import auth, pages, policies, reservations, seats
 
 app = FastAPI(title="LSRS — 도서관 좌석 예약 시스템", version="0.1.0")
 
@@ -23,6 +23,7 @@ async def not_implemented_handler(_: Request, exc: NotImplementedError):
 app.include_router(auth.router)
 app.include_router(seats.router)
 app.include_router(reservations.router)
+app.include_router(policies.router)
 app.include_router(pages.router)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 

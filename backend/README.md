@@ -12,13 +12,18 @@
 
 **Sprint 1 — Core (30 SP)**: 회원 인증, 실시간 좌석 조회, 동시성 안전 예약, 내역 조회, 직접 취소
 → 상세 계획·담당·AC 체크리스트: [`docs/sprint1-plan.md`](docs/sprint1-plan.md)
+→ **데모 준비(시연 순서·예외 케이스·코드 설명)**: [`docs/sprint1-demo.md`](docs/sprint1-demo.md)
+
+**개발 방법**: US별 AC 테스트가 `tests/unit/test_us0X_*.py`에 `@pending`(건너뜀) 상태로 준비돼 있어요.
+담당 Service 함수를 구현하고 `@pending`을 하나씩 지워 통과시키면 됩니다.
 
 ## 2. 빠른 시작
 
 ```bash
-# 1) 저장소 클론 후 develop 브랜치로 이동
-git clone <repo-url> lsrs && cd lsrs
-git switch develop
+# 1) 저장소 클론 → 내 개인 브랜치로 이동 → backend 폴더로
+git clone <repo-url> se_term_project && cd se_term_project
+git switch seongmin                # 각자 자기 브랜치
+cd backend                         # ⚠️ 서버·테스트·스크립트는 항상 backend 폴더 안에서 실행
 
 # 2) 가상환경 + 의존성
 python3.11 -m venv .venv
@@ -33,7 +38,7 @@ docker compose up -d db
 
 # 5) 테이블 생성 + 시드 데이터(좌석 40석, 관리자 1명, 기본 정책)
 python -m scripts.init_db
-python -m scripts.seed
+python -m scripts.seed           # 계정 목록은 docs/sprint1-demo.md 1장
 
 # 6) 서버 실행
 uvicorn app.main:app --reload
@@ -82,5 +87,6 @@ Router에서 DB를 직접 조회하거나, Service에서 `Request`/`Response`를
 
 - 문제정의서 / Product Backlog / 시스템 구조 설계서 (팀 공유 드라이브)
 - 요구사항 명세서 v1.0 (주제 A)
+- [`docs/decisions.md`](docs/decisions.md) — **설계 구체화·보완 기록** (문서 불일치 정리, 발표용 요약)
 - [`docs/api-contract.md`](docs/api-contract.md) — Sprint 1 API 계약·오류 코드
 - [`docs/sprint-log/sprint1-log.md`](docs/sprint-log/sprint1-log.md) — 스프린트 로그① (AI 활용 기록)
