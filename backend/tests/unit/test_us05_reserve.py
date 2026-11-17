@@ -107,3 +107,14 @@ def test_us05_same_request_key_not_duplicated(client, policy, seats, make_user, 
 def test_us05_unknown_seat_404(client, policy, seats, make_user, auth_headers):
     res = _reserve(client, auth_headers(make_user()), 9999)
     assert res.status_code == 404 and res.json()["code"] == "SEAT_NOT_FOUND"
+
+
+def test_us05_timezone_aware_request_is_400_not_500(client, policy, seats, make_user, auth_headers):
+    """시간대가 붙은 요청도 서버 오류 없이 400으로 안내"""
+    body = {
+        "seat_id": seats[0].id,
+        "start_at": "2026-11-20T10:00:00+09:00",
+        "end_at": "2026-11-20T12:00:00+09:00",
+    }
+    res = client.post("/api/reservations", json=body, headers=auth_headers(make_user()))
+    assert res.status_code == 400 and res.json()["code"] == "INVALID_TIME_RANGE"
