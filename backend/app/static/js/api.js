@@ -1,6 +1,6 @@
 // 공통 fetch 래퍼 — 모든 화면은 이 함수로 API를 호출한다.
 // 서버 오류 형식: { code, message }  (docs/api-contract.md)
-async function api(path, { method = "GET", body, query } = {}) {
+async function api(path, { method = "GET", body, query, redirectOnUnauthorized = true } = {}) {
   const url = new URL(path, location.origin);
   if (query) Object.entries(query).forEach(([k, v]) => v != null && url.searchParams.set(k, v));
   const res = await fetch(url, {
@@ -15,7 +15,7 @@ async function api(path, { method = "GET", body, query } = {}) {
     err.status = res.status;
     err.code = data?.code;
     err.data = data;
-    if (res.status === 401) location.href = "/login";
+    if (redirectOnUnauthorized && res.status === 401) location.href = "/login";
     throw err;
   }
   return data;

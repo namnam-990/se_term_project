@@ -50,7 +50,8 @@
 | `DUPLICATE_EMAIL` | 409 | 이메일 중복 | 01 |
 | `INVALID_VERIFICATION` | 400 | 인증 코드 불일치·만료 | 01 |
 | `LOGIN_FAILED` | 401 | ID/비밀번호 불일치 (어느 쪽이 틀렸는지 노출 금지) | 02 |
-| `OUT_OF_BOOKING_WINDOW` | 400 | 과거 / 예약 가능 일수 초과 | 04·05 |
+| `OUT_OF_BOOKING_WINDOW` | 400 | 04: 종료된 조회 시간대 또는 기간 초과 / 05: 과거 또는 기간 초과 | 04·05 |
+| `OPERATION_POLICY_UNAVAILABLE` | 503 | 운영 정책 누락 또는 유효하지 않은 시간 설정 | 04 |
 | `INVALID_TIME_RANGE` | 400 | start ≥ end, 운영시간 밖, 단위 불일치 | 04·05 |
 | `EXCEEDS_MAX_HOURS` | 400 | 최대 이용 시간 초과 | 05 |
 | `USER_RESTRICTED` | 403 | 이용 제한 중 (+`restricted_until`) | 05 |

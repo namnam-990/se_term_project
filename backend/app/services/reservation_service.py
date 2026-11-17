@@ -10,7 +10,13 @@ from sqlalchemy.orm import Session
 
 from app.core.clock import Clock
 from app.models import ReservationStatus, User
-from app.schemas.reservation import ReservationCancelRequest, ReservationCreateRequest
+from app.repositories.reservation_history_repository import list_for_student
+from app.schemas.reservation import (
+    ReservationCancelRequest,
+    ReservationCreateRequest,
+    ReservationListResponse,
+    ReservationResponse,
+)
 
 
 class ReservationService:
@@ -29,9 +35,25 @@ class ReservationService:
         """
         raise NotImplementedError("US-05 create")
 
-    def list_mine(self, user: User, status: ReservationStatus | None):
-        """US-06: 본인 것만, created_at/start_at 최신순, 상태 필터, 빈 결과 안내"""
-        raise NotImplementedError("US-06 list_mine")
+    def list_mine(self, user: User, status: ReservationStatus | None) -> ReservationListResponse:
+        rows = list_for_student(self.db, user.id, status)
+        items = [
+            ReservationResponse(
+                id=reservation.id,
+                seat_id=reservation.seat_id,
+                seat_number=seat_number,
+                start_at=reservation.start_at,
+                end_at=reservation.end_at,
+                status=reservation.status,
+                cancel_reason=reservation.cancel_reason,
+                created_at=reservation.created_at,
+            )
+            for reservation, seat_number in rows
+        ]
+        if items:
+            return ReservationListResponse(items=items)
+        message = "선택한 상태의 예약이 없습니다." if status else "아직 예약 내역이 없습니다."
+        return ReservationListResponse(items=items, message=message)
 
     def cancel_by_student(self, user: User, reservation_id: int, req: ReservationCancelRequest):
         """US-09

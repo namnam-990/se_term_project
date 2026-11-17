@@ -1,7 +1,26 @@
 {% extends "base.html" %}
-{% block title %}좌석 조회·예약{% endblock %}
+{% block title %}좌석 현황{% endblock %}
 {% block content %}
-<h1>좌석 조회·예약</h1>
-<!-- TODO(US-04·05): 화면 구현. 데이터는 static/js/api.js 의 api() 로 /api/* 호출 -->
-<p class="muted">(US-04·05 담당자 구현 예정)</p>
+<h1>좌석 현황</h1>
+<form id="seat-filters" class="filters">
+  <label>날짜 <input name="date" type="date" required></label>
+  <label>시작 시간 <input name="start" type="time" required></label>
+  <label>종료 시간 <input name="end" type="time" required></label>
+  <button class="btn" type="submit">조회</button>
+</form>
+<p class="muted">자정까지 조회하려면 종료 시간을 00:00으로 선택하세요.</p>
+<p id="seat-policy" class="muted" hidden></p>
+<ul class="seat-legend" aria-label="좌석 상태 범례">
+  <li class="seat AVAILABLE">예약 가능</li>
+  <li class="seat IN_USE">사용 중</li>
+  <li class="seat MINE">내 예약</li>
+  <li class="seat RESERVED">예약됨</li>
+</ul>
+<p id="seat-message" role="status">날짜와 시간을 선택하면 좌석 현황이 표시됩니다.</p>
+<div class="scroll-region">
+  <div id="seat-grid" class="seat-grid" aria-label="좌석 배치"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', path='js/seat-grid.js') }}"></script>
 {% endblock %}

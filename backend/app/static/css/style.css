@@ -21,3 +21,21 @@ button.link { background: none; border: 0; color: var(--fg); cursor: pointer; fo
 .seat.IN_USE { background: var(--seat-in-use); }
 .seat.MINE { background: var(--seat-mine); }
 .seat.RESERVED { background: var(--seat-reserved); }
+
+.filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 16px; }
+.filters label { display: grid; gap: 5px; font-weight: 600; }
+.filters input, .filters select { min-height: 40px; padding: 8px; border: 1px solid #9ca3af; border-radius: 6px; background: #fff; color: var(--fg); font: inherit; }
+.seat-legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; padding: 0; list-style: none; }
+.scroll-region { overflow-x: auto; }
+.seat-grid { display: grid; grid-auto-columns: minmax(68px, 1fr); gap: 8px; }
+.seat-tile { display: grid; gap: 4px; }
+.seat-tile.AVAILABLE, .seat-legend .AVAILABLE { cursor: default; }
+.seat.AVAILABLE, .seat.IN_USE, .seat.RESERVED { color: #111827; }
+.reservation-table { width: 100%; border-collapse: collapse; background: #fff; }
+.reservation-table th, .reservation-table td { padding: 12px; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--border); }
+.reservation-table th { background: #eef2ff; }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+@media (max-width: 500px) {
+  .topbar { flex-wrap: wrap; gap: 12px; }
+  .topbar nav { flex-wrap: wrap; }
+}

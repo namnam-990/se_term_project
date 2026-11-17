@@ -40,6 +40,10 @@ class ConflictError(AppError):
     status_code, default_code = 409, "CONFLICT"
 
 
+class ServiceUnavailableError(AppError):
+    status_code, default_code = 503, "SERVICE_UNAVAILABLE"
+
+
 async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
     body = {"code": exc.code, "message": exc.message, **exc.extra}
     return JSONResponse(status_code=exc.status_code, content=body)
