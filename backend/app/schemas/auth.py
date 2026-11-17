@@ -1,6 +1,6 @@
 """US-01·02·03 DTO — 필드명은 docs/api-contract.md 와 일치시킨다."""
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 from app.models import Role
 from app.schemas.common import ORMModel
@@ -21,8 +21,17 @@ class SignupResponse(BaseModel):
 
 
 class EmailVerifyRequest(BaseModel):
-    email: EmailStr
-    code: str = Field(min_length=6, max_length=6)
+    """링크 인증: token만 / 코드 인증: email + code (D-03). 둘 중 하나는 반드시 있어야 함."""
+
+    token: str | None = Field(default=None, description="메일 링크에 포함된 토큰")
+    email: EmailStr | None = None
+    code: str | None = Field(default=None, min_length=6, max_length=6)
+
+    @model_validator(mode="after")
+    def _token_or_code(self):
+        if not self.token and not (self.email and self.code):
+            raise ValueError("인증 링크 토큰 또는 이메일과 6자리 코드를 입력하세요.")
+        return self
 
 
 class LoginRequest(BaseModel):

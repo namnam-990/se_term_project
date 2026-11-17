@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.clock import Clock, get_clock
+from app.core.csrf import verify_csrf
 from app.core.database import get_db
 from app.core.deps import require_student
 from app.models import ReservationStatus, User
@@ -24,7 +25,9 @@ def get_reservation_service(
     return ReservationService(db, clock)
 
 
-@router.post("/reservations", response_model=ReservationResponse)
+@router.post(
+    "/reservations", response_model=ReservationResponse, dependencies=[Depends(verify_csrf)]
+)
 def create_reservation(
     req: ReservationCreateRequest,
     user: User = Depends(require_student),
@@ -43,7 +46,11 @@ def my_reservations(
     return svc.list_mine(user, status)
 
 
-@router.post("/reservations/{reservation_id}/cancel", response_model=ReservationResponse)
+@router.post(
+    "/reservations/{reservation_id}/cancel",
+    response_model=ReservationResponse,
+    dependencies=[Depends(verify_csrf)],
+)
 def cancel_reservation(
     reservation_id: int,
     req: ReservationCancelRequest,

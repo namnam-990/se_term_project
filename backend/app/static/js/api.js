@@ -1,3 +1,9 @@
+// CSRF 토큰 쿠키 읽기 (D-02, app/core/csrf.py)
+function getCookie(name) {
+  const m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
 // 공통 fetch 래퍼 — 모든 화면은 이 함수로 API를 호출한다.
 // 서버 오류 형식: { code, message }  (docs/api-contract.md)
 async function api(path, { method = "GET", body, query } = {}) {
@@ -6,7 +12,10 @@ async function api(path, { method = "GET", body, query } = {}) {
   const res = await fetch(url, {
     method,
     credentials: "same-origin", // HttpOnly 쿠키 자동 전송
-    headers: body ? { "Content-Type": "application/json" } : {},
+    headers: {
+      ...(body ? { "Content-Type": "application/json" } : {}),
+      ...(method !== "GET" ? { "X-CSRF-Token": getCookie("csrf_token") ?? "" } : {}),
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = res.status === 204 ? null : await res.json().catch(() => null);

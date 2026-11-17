@@ -19,7 +19,8 @@ class ReservationStatus(StrEnum):
     CHECKED_IN = "CHECKED_IN"  # QR 체크인 (Sprint 2)
     CANCELLED = "CANCELLED"  # 학생 직접 / 관리자 강제 취소
     AUTO_CANCELLED = "AUTO_CANCELLED"  # 노쇼 자동 취소 (Sprint 2)
-    COMPLETED = "COMPLETED"  # 퇴실 (문제정의서)
+    COMPLETED = "COMPLETED"  # 퇴실 — 설계서 기준 (Sprint 2, D-01)
+    # "체크인 대기"는 저장 상태가 아님: RESERVED & start_at <= now < start_at+15분 (D-14)
 
 
 # 좌석을 점유하는 상태 (설계서 Data Integrity Rules)
