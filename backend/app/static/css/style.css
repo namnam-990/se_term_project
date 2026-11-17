@@ -4,6 +4,7 @@
   --seat-available: #22c55e; --seat-in-use: #9ca3af; --seat-mine: #2563eb; --seat-reserved: #f59e0b;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; } /* display:flex 등이 hidden 속성을 덮어쓰지 않도록 */
 body { margin: 0; font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; background: var(--bg); color: var(--fg); }
 .topbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--border); }
 .topbar nav { display: flex; gap: 16px; align-items: center; }
@@ -29,7 +30,14 @@ button.link { background: none; border: 0; color: var(--fg); cursor: pointer; fo
 .scroll-region { overflow-x: auto; }
 .seat-grid { display: grid; grid-auto-columns: minmax(68px, 1fr); gap: 8px; }
 .seat-tile { display: grid; gap: 4px; }
-.seat-tile.AVAILABLE, .seat-legend .AVAILABLE { cursor: default; }
+.seat-legend .AVAILABLE { cursor: default; }
+button.seat-tile { border: 0; font-family: inherit; cursor: pointer; }
+button.seat-tile:hover { filter: brightness(0.95); outline: 2px solid var(--fg); }
+.reserve-panel, .cancel-panel { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; padding: 12px; background: #fff; border: 1px solid var(--border); border-radius: 8px; }
+.reserve-panel p, .cancel-panel p { margin: 0 8px 0 0; font-weight: 600; }
+.cancel-panel select, .cancel-panel input { min-height: 40px; padding: 8px; border: 1px solid #9ca3af; border-radius: 6px; font: inherit; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.small { padding: 6px 10px; font-size: 13px; }
 .seat.AVAILABLE, .seat.IN_USE, .seat.RESERVED { color: #111827; }
 .reservation-table { width: 100%; border-collapse: collapse; background: #fff; }
 .reservation-table th, .reservation-table td { padding: 12px; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--border); }

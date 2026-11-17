@@ -2,6 +2,11 @@ const seatFilters = document.getElementById("seat-filters");
 const seatGrid = document.getElementById("seat-grid");
 const seatPolicy = document.getElementById("seat-policy");
 const seatMessage = document.getElementById("seat-message");
+const midnightHint = document.getElementById("seat-midnight-hint");
+const reservePanel = document.getElementById("reserve-panel");
+const reserveSummary = document.getElementById("reserve-summary");
+const reserveConfirm = document.getElementById("reserve-confirm");
+let selectedSeat = null; // { seat, start_at, end_at, requestKey }
 const seatLabels = { AVAILABLE: "예약 가능", IN_USE: "사용 중", MINE: "내 예약", RESERVED: "예약됨" };
 let seatQuery = 0;
 
@@ -14,6 +19,7 @@ function seatEndTimestamp(date, time) {
 
 async function refreshSeats() {
   const currentQuery = ++seatQuery;
+  closeReservePanel();
   seatGrid.replaceChildren();
   seatPolicy.hidden = true;
   if (!seatFilters.checkValidity()) {
@@ -25,21 +31,34 @@ async function refreshSeats() {
   const date = values.get("date");
   seatMessage.textContent = "좌석 현황을 불러오는 중입니다.";
   try {
+    const range = {
+      start_at: `${date}T${values.get("start")}:00`,
+      end_at: seatEndTimestamp(date, values.get("end")),
+    };
     const { seats, policy } = await api("/api/seats", {
       redirectOnUnauthorized: false,
-      query: {
-        start_at: `${date}T${values.get("start")}:00`,
-        end_at: seatEndTimestamp(date, values.get("end")),
-      },
+      query: range,
     });
     if (currentQuery !== seatQuery) return;
-    seatPolicy.textContent = `${policy.exam_mode ? "시험 기간" : "평상시"} · 최대 예약 ${policy.max_hours}시간 · ${policy.slot_minutes}분 단위`;
+    const period = policy.exam_mode ? "당일~다음 날" : `오늘부터 ${policy.days_ahead}일 후까지`;
+    seatPolicy.textContent =
+      `${policy.exam_mode ? "시험 기간" : "평상시"} · 예약 가능 기간 ${period} · ` +
+      `최대 예약 ${policy.max_hours}시간 · ` +
+      `운영 ${String(policy.open_hour).padStart(2, "0")}:00~${String(policy.close_hour).padStart(2, "0")}:00 · ` +
+      `${policy.slot_minutes}분 단위`;
+    midnightHint.hidden = policy.close_hour !== 24;
     seatPolicy.hidden = false;
 
     const fragment = document.createDocumentFragment();
     for (const seat of seats) {
-      const tile = document.createElement("div");
+      const bookable = seat.status === "AVAILABLE";
+      const tile = document.createElement(bookable ? "button" : "div");
       tile.className = `seat seat-tile ${seat.status}`;
+      if (bookable) {
+        tile.type = "button";
+        tile.setAttribute("aria-label", `${seat.seat_number} 좌석 예약`);
+        tile.addEventListener("click", () => openReservePanel(seat, range));
+      }
       tile.style.gridRowStart = seat.grid_row;
       tile.style.gridColumnStart = seat.grid_col;
       const number = document.createElement("strong");
@@ -68,6 +87,52 @@ async function refreshSeats() {
     seatMessage.textContent = `${message} 다시 조회하려면 조회 버튼을 누르세요.`;
   }
 }
+
+// ───────────── US-05 좌석 예약 ─────────────
+function openReservePanel(seat, range) {
+  selectedSeat = {
+    seat,
+    ...range,
+    // 같은 좌석·시간을 다시 누르기 전까지 같은 키 → 더블 클릭해도 예약 1건 (서버 request_key)
+    requestKey: typeof newRequestKey === "function" ? newRequestKey() : `${Date.now()}-${Math.random()}`,
+  };
+  const fmt = (s) => s.slice(0, 16).replace("T", " ");
+  reserveSummary.textContent = `${seat.seat_number} 좌석 · ${fmt(range.start_at)} ~ ${fmt(range.end_at)}`;
+  reserveConfirm.disabled = false;
+  reservePanel.hidden = false;
+  reserveConfirm.focus();
+}
+
+function closeReservePanel() {
+  selectedSeat = null;
+  reservePanel.hidden = true;
+}
+
+async function confirmReservation() {
+  if (!selectedSeat) return;
+  reserveConfirm.disabled = true;
+  try {
+    const reservation = await api("/api/reservations", {
+      method: "POST",
+      body: {
+        seat_id: selectedSeat.seat.seat_id,
+        start_at: selectedSeat.start_at,
+        end_at: selectedSeat.end_at,
+        request_key: selectedSeat.requestKey,
+      },
+    });
+    toast(`${reservation.seat_number} 좌석 예약이 완료되었습니다.`, true);
+    await refreshSeats(); // 방금 예약한 좌석이 '내 예약'으로 바뀐 것을 바로 보여줌
+  } catch (error) {
+    // 서버 안내 문구를 그대로 표시 (이미 선택된 좌석, 같은 시간대 중복, 이용 제한·해제일, 최대 시간 등)
+    toast(error.message || "예약하지 못했습니다.");
+    reserveConfirm.disabled = false;
+    if (error.code === "SEAT_ALREADY_RESERVED") await refreshSeats();
+  }
+}
+
+reserveConfirm.addEventListener("click", confirmReservation);
+document.getElementById("reserve-close").addEventListener("click", closeReservePanel);
 
 const koreaDate = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit",

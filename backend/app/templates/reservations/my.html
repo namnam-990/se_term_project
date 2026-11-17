@@ -15,11 +15,26 @@
   </label>
 </div>
 <p id="reservation-message" role="status"></p>
+<!-- US-09: 직접 취소 — 사유 선택 (FR-X-02) -->
+<section id="cancel-panel" class="cancel-panel" hidden aria-live="polite">
+  <p id="cancel-summary"></p>
+  <label>취소 사유
+    <select id="cancel-reason">
+      <option value="SCHEDULE_CHANGE">일정 변경</option>
+      <option value="SEAT_CHANGE">좌석 위치 변경</option>
+      <option value="TIME_CHANGE">시간대 변경</option>
+      <option value="OTHER">기타</option>
+    </select>
+  </label>
+  <input id="cancel-detail" type="text" maxlength="200" placeholder="기타 사유 (선택)" hidden>
+  <button id="cancel-confirm" class="btn" type="button">예약 취소</button>
+  <button id="cancel-close" class="btn secondary" type="button">닫기</button>
+</section>
 <a id="reservation-empty-link" href="/seats" hidden>좌석 조회하기</a>
 <button id="reservation-retry" class="btn" type="button" hidden>다시 조회</button>
 <div class="scroll-region">
   <table id="reservation-table" class="reservation-table" hidden aria-label="내 예약 내역">
-    <thead><tr><th scope="col">좌석</th><th scope="col">이용 시작</th><th scope="col">이용 종료</th><th scope="col">상태</th></tr></thead>
+    <thead><tr><th scope="col">좌석</th><th scope="col">이용 시작</th><th scope="col">이용 종료</th><th scope="col">상태</th><th scope="col">관리</th></tr></thead>
     <tbody></tbody>
   </table>
 </div>

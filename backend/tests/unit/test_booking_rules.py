@@ -50,7 +50,7 @@ def test_allowed_boundaries(start, end):
     [
         (at(20, 12), at(20, 10), "INVALID_TIME_RANGE"),  # 역순
         (at(20, 10), at(20, 10), "INVALID_TIME_RANGE"),  # 0분
-        (at(20, 21), at(21, 1), "INVALID_TIME_RANGE"),  # 날짜 넘김
+        (at(20, 21), at(21, 1), "INVALID_TIME_RANGE"),  # 날짜 넘김 (22시 종료 정책)
         (at(20, 8), at(20, 10), "INVALID_TIME_RANGE"),  # 운영 시작 전
         (at(20, 21), at(20, 23), "INVALID_TIME_RANGE"),  # 운영 종료 후
         (at(20, 10, 30), at(20, 12), "INVALID_TIME_RANGE"),  # 60분 단위 아님
@@ -78,3 +78,25 @@ def test_exam_mode_max_3_hours():
         validate_booking(at(20, 10), at(20, 14), NOW, policy(exam=True))
     assert e.value.code == "EXCEEDS_MAX_HOURS"
     assert "시험 기간" in e.value.message
+
+
+def test_midnight_close_hour_24_supported():
+    """close_hour=24(자정 종료) 정책: 23~24시 허용, 다음 날 1시까지는 거부 (이전엔 500 오류)"""
+    p = policy()
+    p.close_hour = 24
+    validate_booking(at(20, 23), at(21, 0), NOW, p)
+    with pytest.raises(BadRequestError) as e:
+        validate_booking(at(20, 23), at(21, 1), NOW, p)
+    assert e.value.code == "INVALID_TIME_RANGE"
+
+
+def test_timezone_aware_input_rejected():
+    """'+09:00'이 붙은 시각 → 400 (이전엔 naive/aware 비교로 500 오류)"""
+    from datetime import timedelta, timezone
+
+    kst = timezone(timedelta(hours=9))
+    with pytest.raises(BadRequestError) as e:
+        validate_booking(
+            at(20, 10).replace(tzinfo=kst), at(20, 12).replace(tzinfo=kst), NOW, policy()
+        )
+    assert e.value.code == "INVALID_TIME_RANGE"
