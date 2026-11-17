@@ -22,10 +22,7 @@ from app.models import AccountStatus, OperationPolicy, Reservation, Role, Seat, 
 from app.schemas.reservation import ReservationCreateRequest
 from app.services.reservation_service import ReservationService
 
-pytestmark = [
-    pytest.mark.integration,
-    pytest.mark.skip(reason="US-05 구현 전 — 구현 후 이 줄의 skip만 지우세요"),
-]
+pytestmark = pytest.mark.integration
 
 N = 10  # 동시에 요청하는 학생 수
 

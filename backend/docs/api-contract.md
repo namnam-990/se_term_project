@@ -63,5 +63,6 @@
 | `SEAT_NOT_FOUND` | 404 | 좌석 없음·비활성 | 05 |
 | `RESERVATION_NOT_FOUND` | 404 | 예약 없음 | 09 |
 | `NOT_OWNER` | 403 | 타인 예약 | 09 |
-| `NOT_CANCELLABLE` | 409 | RESERVED가 아닌 예약 취소 | 09 |
+| `NOT_CANCELLABLE` | 409 | RESERVED가 아닌 예약, 또는 체크인 마감(시작+15분) 이후 취소 (D-26) | 09 |
+| `REQUEST_KEY_CONFLICT` | 409 | 다른 사용자가 이미 쓴 request_key | 05 |
 | `CSRF_FAILED` | 403 | CSRF 쿠키·헤더 불일치 (D-02) | 공통 |

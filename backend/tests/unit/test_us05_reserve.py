@@ -9,8 +9,6 @@ import pytest
 
 from app.models import RestrictionSource, UserRestriction
 
-pending = pytest.mark.skip(reason="US-05 구현 전 — 구현 후 이 데코레이터를 지우세요")
-
 
 def _reserve(client, headers, seat_id, start="10:00", end="12:00", day=20, key=None):
     body = {
@@ -23,7 +21,6 @@ def _reserve(client, headers, seat_id, start="10:00", end="12:00", day=20, key=N
     return client.post("/api/reservations", json=body, headers=headers)
 
 
-@pending
 def test_us05_ac1_reserve_success(client, policy, seats, make_user, auth_headers):
     """Given 제한 없음 + 가용 좌석 + 유효 시간 When 예약 Then RESERVED 저장 (FR-R-10·13)"""
     res = _reserve(client, auth_headers(make_user()), seats[0].id)
@@ -32,7 +29,6 @@ def test_us05_ac1_reserve_success(client, policy, seats, make_user, auth_headers
     assert body["status"] == "RESERVED" and body["seat_number"] == "A-01"
 
 
-@pending
 def test_us05_ac2_same_seat_second_request_conflict(client, policy, seats, make_user, auth_headers):
     """Given 이미 선택된 좌석 When 다른 학생 예약 Then 409 SEAT_ALREADY_RESERVED"""
     _reserve(client, auth_headers(make_user("202200001")), seats[0].id)
@@ -40,7 +36,6 @@ def test_us05_ac2_same_seat_second_request_conflict(client, policy, seats, make_
     assert res.status_code == 409 and res.json()["code"] == "SEAT_ALREADY_RESERVED"
 
 
-@pending
 def test_us05_ac3_same_user_overlap_rejected(client, policy, seats, make_user, auth_headers):
     """Given 같은 시간대 예약 보유 When 다른 좌석 예약 Then 409 USER_TIME_OVERLAP (FR-R-11)"""
     h = auth_headers(make_user())
@@ -49,7 +44,6 @@ def test_us05_ac3_same_user_overlap_rejected(client, policy, seats, make_user, a
     assert res.status_code == 409 and res.json()["code"] == "USER_TIME_OVERLAP"
 
 
-@pending
 def test_us05_adjacent_slot_allowed(client, policy, seats, make_user, auth_headers):
     """경계값: 10~12시 다음 12~14시는 겹치지 않음 → 허용"""
     h = auth_headers(make_user())
@@ -57,7 +51,6 @@ def test_us05_adjacent_slot_allowed(client, policy, seats, make_user, auth_heade
     assert _reserve(client, h, seats[0].id, "12:00", "14:00").status_code == 200
 
 
-@pending
 def test_us05_ac4_restricted_user_rejected_with_release_date(
     client, db_session, clock, policy, seats, make_user, auth_headers
 ):
@@ -75,7 +68,6 @@ def test_us05_ac4_restricted_user_rejected_with_release_date(
     assert datetime.fromisoformat(res.json()["restricted_until"]) == until
 
 
-@pending
 @pytest.mark.parametrize(
     "start,end,day,code",
     [
@@ -95,7 +87,6 @@ def test_us05_policy_validation(
     assert res.status_code == 400 and res.json()["code"] == code
 
 
-@pending
 def test_us05_exam_mode_max_3_hours(client, db_session, policy, seats, make_user, auth_headers):
     """시험 기간: 4시간 예약 → 400 (최대 3시간)"""
     policy.exam_mode = True
@@ -104,7 +95,6 @@ def test_us05_exam_mode_max_3_hours(client, db_session, policy, seats, make_user
     assert res.status_code == 400 and res.json()["code"] == "EXCEEDS_MAX_HOURS"
 
 
-@pending
 def test_us05_same_request_key_not_duplicated(client, policy, seats, make_user, auth_headers):
     """더블 클릭 등 같은 요청 키 재전송 → 같은 예약 반환, 새로 만들지 않음"""
     h = auth_headers(make_user())
@@ -114,7 +104,6 @@ def test_us05_same_request_key_not_duplicated(client, policy, seats, make_user, 
     assert a.json()["id"] == b.json()["id"]
 
 
-@pending
 def test_us05_unknown_seat_404(client, policy, seats, make_user, auth_headers):
     res = _reserve(client, auth_headers(make_user()), 9999)
     assert res.status_code == 404 and res.json()["code"] == "SEAT_NOT_FOUND"
