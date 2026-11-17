@@ -6,7 +6,7 @@ AuthService(US-02/03)에서 구현.
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -40,8 +40,12 @@ def sha256(value: str) -> str:
 
 
 # ── JWT ────────────────────────────────────────────────
-def create_access_token(user_id: int, role: str, session_id: int, now: datetime) -> str:
+def create_access_token(
+    user_id: int, role: str, session_id: int, now: datetime | None = None
+) -> str:
+    """토큰 만료는 실제 시각(UTC) 기준. 업무 규칙용 Clock(KST 고정 가능)과 섞지 않는다."""
     s = get_settings()
+    now = now or datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "role": role,

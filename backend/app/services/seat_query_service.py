@@ -9,7 +9,8 @@ from app.core.exceptions import BadRequestError, ServiceUnavailableError
 from app.models import OperationPolicy, ReservationStatus, User
 from app.models.enums import SeatViewStatus
 from app.repositories.policy_repository import read_current_policy
-from app.repositories.seat_repository import list_seats_with_overlaps
+from app.repositories.reservation_repository import find_overlapping
+from app.repositories.seat_repository import list_enabled
 from app.schemas.seat import PolicyView, SeatGridResponse, SeatView
 
 STATUS_PRIORITY = {
@@ -34,19 +35,18 @@ class SeatQueryService:
         self._validate_range(start_at, end_at, policy)
 
         seats: dict[int, SeatView] = {}
-        for seat, reservation in list_seats_with_overlaps(self.db, start_at, end_at):
-            view = seats.get(seat.id)
-            if view is None:
-                view = SeatView(
-                    seat_id=seat.id,
-                    seat_number=seat.seat_number,
-                    grid_row=seat.grid_row,
-                    grid_col=seat.grid_col,
-                    status=SeatViewStatus.AVAILABLE,
-                )
-                seats[seat.id] = view
+        for seat in list_enabled(self.db):
+            seats[seat.id] = SeatView(
+                seat_id=seat.id,
+                seat_number=seat.seat_number,
+                grid_row=seat.grid_row,
+                grid_col=seat.grid_col,
+                status=SeatViewStatus.AVAILABLE,
+            )
 
-            if reservation is None:
+        for reservation in find_overlapping(self.db, start_at, end_at):
+            view = seats.get(reservation.seat_id)
+            if view is None:
                 continue
             if reservation.user_id == user.id:
                 status = SeatViewStatus.MINE

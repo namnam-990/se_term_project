@@ -1,24 +1,51 @@
-"""시드 데이터: 좌석 40석(A~D열 × 10), 관리자 1명, 기본 운영 정책, 데모 학생 2명.
+"""시드 데이터 — 데모 준비물 (데모 루브릭 '즉시 실행 가능한 환경 준비').
 
     python -m scripts.seed
-여러 번 실행해도 중복 생성되지 않는다.
+
+여러 번 실행해도 중복 생성되지 않는다. 생성 내용:
+- 운영 정책 1행 (명세서 기본값: 평상시 +7일·4시간 / 시험 +1일·3시간)
+- 좌석 40석 (A~D열 × 10)
+- 계정 (비밀번호는 아래 표 참고)
+    admin       관리자                       Admin!2345  (.env SEED_ADMIN_*)
+    202200001   학생 ACTIVE                  Student!234  ← 주 시연 계정
+    202200002   학생 ACTIVE                  Student!234  ← 동시 예약·타인 예약 시연
+    202200003   학생 PENDING (이메일 미인증)  Student!234  ← US-02 AC3 시연
+    202200004   학생 ACTIVE + 이용 제한 3일   Student!234  ← US-05 AC4 시연
 """
+
+from datetime import timedelta
 
 from sqlalchemy import select
 
+from app.core.clock import Clock
 from app.core.config import get_settings
 from app.core.database import SessionLocal
 from app.core.security import hash_password
-from app.models import AccountStatus, OperationPolicy, Role, Seat, User
+from app.models import (
+    AccountStatus,
+    OperationPolicy,
+    RestrictionSource,
+    Role,
+    Seat,
+    User,
+    UserRestriction,
+)
 
 ROWS, COLS = "ABCD", 10
-DEMO_STUDENTS = [("202200001", "student1@example.ac.kr"), ("202200002", "student2@example.ac.kr")]
 DEMO_PASSWORD = "Student!234"
+STUDENTS = [
+    ("202200001", "student1@example.ac.kr", "데모1", AccountStatus.ACTIVE),
+    ("202200002", "student2@example.ac.kr", "데모2", AccountStatus.ACTIVE),
+    ("202200003", "student3@example.ac.kr", "미인증", AccountStatus.PENDING),
+    ("202200004", "student4@example.ac.kr", "제한중", AccountStatus.ACTIVE),
+]
+RESTRICTED_STUDENT = "202200004"
 
 
 def run():
     s = get_settings()
-    with SessionLocal() as db, db.begin():
+    now = Clock().now()
+    with SessionLocal() as db:
         if db.get(OperationPolicy, 1) is None:
             db.add(OperationPolicy(id=1))
 
@@ -29,29 +56,49 @@ def run():
                 if num not in existing:
                     db.add(Seat(seat_number=num, grid_row=r, grid_col=c, enabled=True))
 
-        def ensure_user(login_id, **kw):
-            if db.scalar(select(User).where(User.login_id == login_id)) is None:
-                db.add(User(login_id=login_id, account_status=AccountStatus.ACTIVE, **kw))
+        def ensure_user(login_id, **kw) -> User:
+            user = db.scalar(select(User).where(User.login_id == login_id))
+            if user is None:
+                user = User(login_id=login_id, **kw)
+                db.add(user)
+                db.flush()
+            return user
 
         ensure_user(
             s.seed_admin_login_id,
             password_hash=hash_password(s.seed_admin_password),
             role=Role.ROLE_ADMIN,
+            account_status=AccountStatus.ACTIVE,
             name="관리자",
         )
-        for no, email in DEMO_STUDENTS:
-            ensure_user(
+        for no, email, name, status in STUDENTS:
+            user = ensure_user(
                 no,
                 student_no=no,
                 email=email,
+                name=name,
                 password_hash=hash_password(DEMO_PASSWORD),
                 role=Role.ROLE_STUDENT,
-                name=f"데모{no[-1]}",
+                account_status=status,
             )
-    print(
-        f"seed done: seats={len(ROWS) * COLS}, admin={s.seed_admin_login_id}, "
-        f"students={[n for n, _ in DEMO_STUDENTS]} (pw: {DEMO_PASSWORD})"
-    )
+            if no == RESTRICTED_STUDENT:
+                # 데모 당일에도 제한 상태가 유지되도록 '지금부터 3일'로 매번 갱신
+                db.query(UserRestriction).filter_by(user_id=user.id, released_at=None).delete()
+                db.add(
+                    UserRestriction(
+                        user_id=user.id,
+                        source=RestrictionSource.ADMIN,
+                        starts_at=now,
+                        ends_at=now + timedelta(days=3),
+                        reason="데모용 이용 제한",
+                    )
+                )
+        db.commit()
+
+    print("seed done")
+    print(f"  seats: {len(ROWS) * COLS}  admin: {s.seed_admin_login_id} / {s.seed_admin_password}")
+    for no, _, name, status in STUDENTS:
+        print(f"  {no} ({name}, {status.value}) / {DEMO_PASSWORD}")
 
 
 if __name__ == "__main__":

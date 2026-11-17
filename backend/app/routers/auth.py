@@ -1,9 +1,10 @@
 """Auth Router — HTTP 입출력만. 업무 규칙은 AuthService.  (US-01·02·03)"""
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.clock import Clock, get_clock
+from app.core.csrf import verify_csrf
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models import User
@@ -46,7 +47,13 @@ def login(req: LoginRequest, response: Response, svc: AuthService = Depends(get_
     return svc.login(req)
 
 
-@router.post("/logout", response_model=MessageResponse)
+@router.post("/refresh", response_model=LoginResponse, dependencies=[Depends(verify_csrf)])
+def refresh(request: Request, svc: AuthService = Depends(get_auth_service)):
+    # TODO(US-02, D-05·D-02): refresh_token 쿠키 읽어 svc.refresh() → access_token 쿠키 갱신
+    raise NotImplementedError("US-02 refresh")
+
+
+@router.post("/logout", response_model=MessageResponse, dependencies=[Depends(verify_csrf)])
 def logout(
     response: Response,
     user: User = Depends(get_current_user),

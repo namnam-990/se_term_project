@@ -26,7 +26,7 @@ class Reservation(Base):
         str_enum(ReservationStatus), default=ReservationStatus.RESERVED
     )
     checked_in_at: Mapped[datetime | None] = mapped_column(DateTime)
-    ended_at: Mapped[datetime | None] = mapped_column(DateTime)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime)  # 퇴실 시각 (Sprint 2, D-01)
     cancel_reason: Mapped[str | None] = mapped_column(String(30))
     cancel_detail: Mapped[str | None] = mapped_column(String(200))  # '기타' 상세
     cancel_origin: Mapped[CancelOrigin | None] = mapped_column(str_enum(CancelOrigin))
@@ -40,3 +40,8 @@ class Reservation(Base):
 
     user = relationship("User", foreign_keys=[user_id])
     seat = relationship("Seat")
+
+    @property
+    def seat_number(self) -> str | None:
+        """ReservationResponse.seat_number용 (응답 DTO가 ORM 객체를 그대로 변환)."""
+        return self.seat.seat_number if self.seat else None
