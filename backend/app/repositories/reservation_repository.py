@@ -9,7 +9,7 @@
 from datetime import datetime
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models import OCCUPYING_STATUSES, Reservation, ReservationStatus
 
@@ -52,7 +52,11 @@ def list_by_user(
     db: Session, user_id: int, status: ReservationStatus | None = None
 ) -> list[Reservation]:
     """US-06 (FR-R-20·21): 본인 것만, 최신순(시작 시각 내림차순), 상태 필터."""
-    q = select(Reservation).where(Reservation.user_id == user_id)
+    q = (
+        select(Reservation)
+        .options(joinedload(Reservation.seat))
+        .where(Reservation.user_id == user_id)
+    )
     if status is not None:
         q = q.where(Reservation.status == status)
     return list(db.scalars(q.order_by(Reservation.start_at.desc(), Reservation.id.desc())))

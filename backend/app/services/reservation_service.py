@@ -18,7 +18,12 @@ from app.repositories import (
     seat_repository,
     user_repository,
 )
-from app.schemas.reservation import ReservationCancelRequest, ReservationCreateRequest
+from app.schemas.reservation import (
+    ReservationCancelRequest,
+    ReservationCreateRequest,
+    ReservationListResponse,
+    ReservationResponse,
+)
 from app.services.booking_rules import validate_booking
 from app.services.policy_service import PolicyService
 
@@ -113,12 +118,14 @@ class ReservationService:
         return reservation
 
     # ──────────────────────────── US-06 내역 조회 ────────────────────────────
-    def list_mine(self, user: User, status: ReservationStatus | None):
-        """US-06 (FR-R-20 필수, FR-R-21 권장): 본인 것만, 최신순, 상태 필터,
-        빈 결과면 items=[] + message="예약 내역이 없습니다." (AC3)
-        사용: reservation_repository.list_by_user
-        """
-        raise NotImplementedError("US-06 list_mine")
+    def list_mine(self, user: User, status: ReservationStatus | None) -> ReservationListResponse:
+        reservations = reservation_repository.list_by_user(self.db, user.id, status)
+        return ReservationListResponse(
+            items=[ReservationResponse.model_validate(item) for item in reservations],
+            message=None
+            if reservations
+            else ("선택한 상태의 예약이 없습니다." if status else "예약 내역이 없습니다."),
+        )
 
     # ──────────────────────────── US-09 직접 취소 ────────────────────────────
     def cancel_by_student(

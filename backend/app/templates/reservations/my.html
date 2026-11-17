@@ -2,6 +2,28 @@
 {% block title %}내 예약{% endblock %}
 {% block content %}
 <h1>내 예약</h1>
-<!-- TODO(US-06·09): 화면 구현. 데이터는 static/js/api.js 의 api() 로 /api/* 호출 -->
-<p class="muted">(US-06·09 담당자 구현 예정)</p>
+<div class="filters">
+  <label>예약 상태
+    <select id="reservation-status">
+      <option value="">전체</option>
+      <option value="RESERVED">예약됨</option>
+      <option value="CHECKED_IN">사용 중</option>
+      <option value="CANCELLED">취소</option>
+      <option value="AUTO_CANCELLED">자동 취소</option>
+      <option value="COMPLETED">이용 완료</option>
+    </select>
+  </label>
+</div>
+<p id="reservation-message" role="status"></p>
+<a id="reservation-empty-link" href="/seats" hidden>좌석 조회하기</a>
+<button id="reservation-retry" class="btn" type="button" hidden>다시 조회</button>
+<div class="scroll-region">
+  <table id="reservation-table" class="reservation-table" hidden aria-label="내 예약 내역">
+    <thead><tr><th scope="col">좌석</th><th scope="col">이용 시작</th><th scope="col">이용 종료</th><th scope="col">상태</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', path='js/reservation-history.js') }}"></script>
 {% endblock %}

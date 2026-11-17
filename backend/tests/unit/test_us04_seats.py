@@ -9,14 +9,11 @@ import pytest
 
 from app.models import ReservationStatus
 
-pending = pytest.mark.skip(reason="US-04 구현 전 — 구현 후 이 데코레이터를 지우세요")
-
 
 def _grid(client, headers, start="2026-11-20T10:00:00", end="2026-11-20T12:00:00"):
     return client.get("/api/seats", params={"start_at": start, "end_at": end}, headers=headers)
 
 
-@pending
 def test_us04_ac1_four_states_within_500ms(
     client, policy, seats, make_user, auth_headers, make_reservation
 ):
@@ -37,7 +34,6 @@ def test_us04_ac1_four_states_within_500ms(
     assert elapsed < 0.5
 
 
-@pending
 def test_us04_ac2_other_timeslot_recomputed(
     client, policy, seats, make_user, auth_headers, make_reservation
 ):
@@ -48,7 +44,6 @@ def test_us04_ac2_other_timeslot_recomputed(
     assert {s["status"] for s in res.json()["seats"]} == {"AVAILABLE"}
 
 
-@pending
 @pytest.mark.parametrize(
     "start,end",
     [
@@ -65,14 +60,12 @@ def test_us04_ac3_out_of_window_rejected(
     assert res.status_code == 400 and res.json()["code"] == "OUT_OF_BOOKING_WINDOW"
 
 
-@pending
 def test_us04_window_last_day_allowed(client, policy, seats, make_user, auth_headers):
     """경계값: 오늘+7일은 허용 (양 끝 포함, D-13)"""
     res = _grid(client, auth_headers(make_user()), "2026-11-27T10:00:00", "2026-11-27T12:00:00")
     assert res.status_code == 200
 
 
-@pending
 def test_us04_ac4_exam_mode_policy_shown(
     client, db_session, policy, seats, make_user, auth_headers
 ):

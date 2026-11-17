@@ -66,3 +66,5 @@
 | `NOT_CANCELLABLE` | 409 | RESERVED가 아닌 예약, 또는 체크인 마감(시작+15분) 이후 취소 (D-26) | 09 |
 | `REQUEST_KEY_CONFLICT` | 409 | 다른 사용자가 이미 쓴 request_key | 05 |
 | `CSRF_FAILED` | 403 | CSRF 쿠키·헤더 불일치 (D-02) | 공통 |
+
+- 좌석 조회에서 운영 정책이 없거나 시간 설정이 잘못되면 `503 OPERATION_POLICY_UNAVAILABLE`을 반환합니다.
