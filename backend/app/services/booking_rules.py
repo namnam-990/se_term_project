@@ -122,3 +122,18 @@ def validate_booking(
     check_time_range(start_at, end_at, policy)
     check_window(start_at, end_at, now, policy)
     check_max_hours(start_at, end_at, policy)
+
+
+def booking_block_reason(
+    start_at: datetime, end_at: datetime, now: datetime, policy: OperationPolicy
+) -> str | None:
+    """조회한 구간을 그대로 예약할 수 없다면 그 이유(안내 문구), 가능하면 None.
+
+    US-04 AC3 "예약이 불가능한 일시임을 안내" + D-28: 진행 중 시간대는 조회는 되지만 예약은 안 됨.
+    예약 규칙(validate_booking)을 그대로 재사용하므로 화면 안내와 실제 예약 결과가 항상 같다.
+    """
+    try:
+        validate_booking(start_at, end_at, now, policy)
+    except BadRequestError as e:
+        return e.message
+    return None

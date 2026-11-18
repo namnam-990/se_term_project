@@ -12,7 +12,7 @@ from app.repositories.policy_repository import read_current_policy
 from app.repositories.reservation_repository import find_overlapping
 from app.repositories.seat_repository import list_enabled
 from app.schemas.seat import PolicyView, SeatGridResponse, SeatView
-from app.services.booking_rules import validate_view
+from app.services.booking_rules import booking_block_reason, validate_view
 
 STATUS_PRIORITY = {
     SeatViewStatus.AVAILABLE: 0,
@@ -34,7 +34,9 @@ class SeatQueryService:
                 "OPERATION_POLICY_UNAVAILABLE",
             )
         # 시간 규칙은 예약(US-05)과 같은 booking_rules 사용 — 조회는 진행 중 시간대까지 허용
-        validate_view(start_at, end_at, self.clock.now(), policy)
+        now = self.clock.now()
+        validate_view(start_at, end_at, now, policy)
+        block_reason = booking_block_reason(start_at, end_at, now, policy)  # D-28
 
         seats: dict[int, SeatView] = {}
         for seat in list_enabled(self.db):
@@ -65,4 +67,6 @@ class SeatQueryService:
             end_at=end_at,
             policy=PolicyView.model_validate(policy),
             seats=list(seats.values()),
+            bookable=block_reason is None,
+            notice=block_reason,
         )
