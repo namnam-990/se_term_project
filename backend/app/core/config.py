@@ -1,11 +1,12 @@
 """환경설정 — .env 값을 읽어 타입이 있는 설정 객체로 제공한다.
 
-업무 정책(예약 가능 일수, 15분, 3회 등)은 여기 두지 않는다. → OperationPolicy(DB)
-여기는 인프라 설정(DB URL, JWT 비밀키, 메일 서버)만 둔다.
+예약·노쇼 정책(예약 가능 일수, 체크인 시간, 노쇼 횟수)은 OperationPolicy(DB)에 둔다.
+여기는 인프라와 인증 설정(DB URL, JWT·메일, 이메일 인증 유효시간·로그인 실패 기준)을 둔다.
 """
 
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +23,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     refresh_token_expire_days: int = 7
     cookie_secure: bool = False
+    public_base_url: str = "http://127.0.0.1:8000"
+    email_verification_expire_minutes: int = Field(default=10, gt=0)  # D-15
+    login_failure_limit: int = Field(default=6, gt=0)  # FR-U-13: 5회 초과
 
     mail_backend: str = "console"  # console | smtp
     smtp_host: str = ""

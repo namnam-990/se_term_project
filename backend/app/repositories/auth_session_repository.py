@@ -16,3 +16,12 @@ def find_by_refresh_hash(db: Session, refresh_token_hash: str) -> AuthSession | 
     return db.scalar(
         select(AuthSession).where(AuthSession.refresh_token_hash == refresh_token_hash)
     )
+
+
+def lock_by_id(db: Session, session_id: int) -> AuthSession | None:
+    return db.scalar(
+        select(AuthSession)
+        .where(AuthSession.id == session_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
