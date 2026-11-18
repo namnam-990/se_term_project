@@ -58,7 +58,7 @@ def check_time_range(start_at: datetime, end_at: datetime, policy: OperationPoli
             "선택할 수 있습니다.",
             code="INVALID_TIME_RANGE",
         )
-    # 단위는 운영 시작 시각 기준으로 정렬 (예: 09시 시작·90분 단위 → 09:00, 10:30, 12:00 …)
+    # 단위는 운영 시작 시각 기준으로 정렬 (예: 06시 시작·30분 단위 → 06:00, 06:30, 07:00 …)
     slot = timedelta(minutes=policy.slot_minutes)
     if (start_offset - opens) % slot or (end_offset - opens) % slot:
         raise BadRequestError(

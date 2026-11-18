@@ -72,8 +72,8 @@ def test_us04_policy_window_and_slot_validation(client, db_session):
     for start, end, code in [
         ("2026-11-19T10:00", "2026-11-19T11:00", "OUT_OF_BOOKING_WINDOW"),
         ("2026-11-22T10:00", "2026-11-22T11:00", "OUT_OF_BOOKING_WINDOW"),
-        ("2026-11-20T10:30", "2026-11-20T11:00", "INVALID_TIME_RANGE"),
-        ("2026-11-20T21:00", "2026-11-20T23:00", "INVALID_TIME_RANGE"),
+        ("2026-11-20T10:15", "2026-11-20T11:00", "INVALID_TIME_RANGE"),  # 30분 단위 아님 (D-11)
+        ("2026-11-20T22:00", "2026-11-20T23:30", "INVALID_TIME_RANGE"),  # 23시 이후 (D-11)
         ("2026-11-20T10:00+09:00", "2026-11-20T11:00+09:00", "INVALID_TIME_RANGE"),
     ]:
         response = client.get("/api/seats", params={"start_at": start, "end_at": end})
@@ -168,7 +168,7 @@ def test_us04_final_day_can_close_at_midnight(client, db_session):
     assert response.json()["code"] == "INVALID_TIME_RANGE"
 
 
-@pytest.mark.parametrize("slot_minutes", [None, 0, -60, 840])
+@pytest.mark.parametrize("slot_minutes", [None, 0, -60, 1050])  # 1050분 > 06~23시(1020분)
 def test_us04_unavailable_policy_does_not_write_or_crash(client, db_session, slot_minutes):
     me = setup_student(db_session, "me")
     app.dependency_overrides[require_student] = lambda: me

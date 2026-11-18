@@ -22,10 +22,11 @@ class OperationPolicy(Base):
     no_show_threshold: Mapped[int] = mapped_column(Integer, default=3)
     restriction_days: Mapped[int] = mapped_column(Integer, default=3)
     scheduler_minutes: Mapped[int] = mapped_column(Integer, default=10)
-    # 운영 시간 (예약 시간 단위 검증용) — 팀 합의로 변경 가능
-    open_hour: Mapped[int] = mapped_column(Integer, default=9)
-    close_hour: Mapped[int] = mapped_column(Integer, default=22)
-    slot_minutes: Mapped[int] = mapped_column(Integer, default=60)
+    # 운영 시간·예약 단위 (D-11, 11/18 개정) — 1층 운영시간 06:00~23:00, 30분 단위
+    # 24시간 운영은 날짜 경계 처리가 복잡해지고 명세서 정책 범위를 벗어나 제외
+    open_hour: Mapped[int] = mapped_column(Integer, default=6)
+    close_hour: Mapped[int] = mapped_column(Integer, default=23)
+    slot_minutes: Mapped[int] = mapped_column(Integer, default=30)
 
     @property
     def days_ahead(self) -> int:

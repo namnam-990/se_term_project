@@ -81,7 +81,7 @@ DEFAULT_PASSWORD = "Student!234"
 
 @pytest.fixture
 def policy(db_session) -> OperationPolicy:
-    """명세서 기본값 정책 (평상시 +7일·4시간 / 시험 +1일·3시간, 09~22시·60분)."""
+    """기본 정책 (평상시 +7일·4시간 / 시험 +1일·3시간, 06~23시·30분 단위, D-11)."""
     p = OperationPolicy(id=1)
     db_session.add(p)
     db_session.commit()
