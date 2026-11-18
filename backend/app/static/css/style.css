@@ -48,3 +48,7 @@ button.seat-tile:hover { filter: brightness(0.95); outline: 2px solid var(--fg);
   .topbar nav { flex-wrap: wrap; }
 }
 .seat-message { font-weight: 600; }
+.time-pick { display: flex; align-items: center; gap: 6px; margin: 0; padding: 0; border: 0; }
+.time-pick legend { padding: 0; margin-bottom: 5px; font-weight: 600; }
+.time-pick select { min-height: 40px; padding: 8px; border: 1px solid #9ca3af; border-radius: 6px; background: #fff; font: inherit; }
+.seat-message.warn { color: #b91c1c; }
