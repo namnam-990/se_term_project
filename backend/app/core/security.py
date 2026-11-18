@@ -50,6 +50,7 @@ def create_access_token(
         "sub": str(user_id),
         "role": role,
         "sid": session_id,
+        "jti": new_token(16),
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=s.access_token_expire_minutes)).timestamp()),
         "typ": "access",
@@ -60,7 +61,14 @@ def create_access_token(
 def decode_access_token(token: str) -> dict:
     """만료·서명 오류 시 jwt.PyJWTError 발생 → 호출 측에서 401 처리."""
     s = get_settings()
-    payload = jwt.decode(token, s.jwt_secret_key, algorithms=[s.jwt_algorithm])
+    payload = jwt.decode(
+        token,
+        s.jwt_secret_key,
+        algorithms=[s.jwt_algorithm],
+        options={"require": ["sub", "sid", "exp", "iat", "typ"]},
+    )
     if payload.get("typ") != "access":
         raise jwt.InvalidTokenError("not an access token")
+    if not str(payload["sub"]).isdigit() or not isinstance(payload["sid"], int):
+        raise jwt.InvalidTokenError("invalid user or session id")
     return payload

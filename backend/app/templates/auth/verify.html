@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}이메일 인증{% endblock %}
+{% block content %}
+<h1>이메일 인증</h1>
+<p>가입한 이메일로 받은 링크 또는 6자리 코드로 인증하세요.</p>
+<form id="verify-form" class="filters auth-form">
+  <label>학교 이메일 <input name="email" type="email" autocomplete="email" required></label>
+  <label>인증 코드 <input name="code" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" required></label>
+  <button class="btn" type="submit">인증하기</button>
+</form>
+<p id="auth-message" role="status"></p>
+<a href="/login">로그인으로 이동</a>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='js/auth.js') }}"></script>{% endblock %}

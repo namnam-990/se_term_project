@@ -17,5 +17,6 @@ def _page(name: str):
 router.add_api_route("/", _page("index.html"), methods=["GET"])
 router.add_api_route("/signup", _page("auth/signup.html"), methods=["GET"])
 router.add_api_route("/login", _page("auth/login.html"), methods=["GET"])
+router.add_api_route("/verify-email", _page("auth/verify.html"), methods=["GET"])
 router.add_api_route("/seats", _page("seats/grid.html"), methods=["GET"])
 router.add_api_route("/me/reservations", _page("reservations/my.html"), methods=["GET"])

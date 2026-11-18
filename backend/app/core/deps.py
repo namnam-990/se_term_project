@@ -52,10 +52,13 @@ def get_current_user(
     user = db.get(User, int(payload["sub"]))
     if user is None:
         raise UnauthorizedError("사용자를 찾을 수 없습니다.", code="TOKEN_INVALID")
+    if session.user_id != user.id:
+        raise UnauthorizedError("사용자와 세션이 일치하지 않습니다.", code="TOKEN_INVALID")
     if user.account_status == AccountStatus.PENDING:
         raise ForbiddenError("이메일 인증 후 이용할 수 있습니다.", code="ACCOUNT_PENDING")
     if user.account_status == AccountStatus.LOCKED:
         raise ForbiddenError("잠긴 계정입니다. 관리자에게 문의하세요.", code="ACCOUNT_LOCKED")
+    request.state.auth_session_id = session.id
     return user
 
 

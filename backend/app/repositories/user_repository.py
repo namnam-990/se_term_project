@@ -28,6 +28,10 @@ def find_by_email(db: Session, email: str) -> User | None:
     return db.scalar(select(User).where(User.email == email))
 
 
+def get_by_id(db: Session, user_id: int) -> User | None:
+    return db.get(User, user_id)
+
+
 def lock_by_id(db: Session, user_id: int) -> User | None:
     """US-05 Core Flow 1: 회원 행 FOR UPDATE (같은 학생 동시 예약 직렬화)."""
     return db.scalar(

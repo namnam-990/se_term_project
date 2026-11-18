@@ -2,6 +2,16 @@
 {% block title %}회원가입{% endblock %}
 {% block content %}
 <h1>회원가입</h1>
-<!-- TODO(US-01): 화면 구현. 데이터는 static/js/api.js 의 api() 로 /api/* 호출 -->
-<p class="muted">(US-01 담당자 구현 예정)</p>
+<form id="signup-form" class="filters auth-form">
+  <label>학번 <input name="student_no" minlength="4" maxlength="20" autocomplete="username" required></label>
+  <label>학교 이메일 <input name="email" type="email" autocomplete="email" required></label>
+  <label>이름 (선택) <input name="name" maxlength="50" autocomplete="name"></label>
+  <label>비밀번호 <input name="password" type="password" minlength="8" autocomplete="new-password" aria-describedby="password-rule" required></label>
+  <p id="password-rule" class="muted">8자 이상, 영문·숫자·특수문자를 포함해 주세요. 최대 UTF-8 72바이트입니다.</p>
+  <button class="btn" type="submit">가입 신청</button>
+</form>
+<p id="auth-message" role="status"></p>
+<a id="verify-link" href="/verify-email" hidden>이메일 인증하기</a>
+<p>이미 가입했나요? <a href="/login">로그인</a></p>
 {% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='js/auth.js') }}"></script>{% endblock %}

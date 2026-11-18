@@ -52,3 +52,6 @@ button.seat-tile:hover { filter: brightness(0.95); outline: 2px solid var(--fg);
 .time-pick legend { padding: 0; margin-bottom: 5px; font-weight: 600; }
 .time-pick select { min-height: 40px; padding: 8px; border: 1px solid #9ca3af; border-radius: 6px; background: #fff; font: inherit; }
 .seat-message.warn { color: #b91c1c; }
+.auth-form { max-width: 440px; display: grid; align-items: stretch; }
+.auth-form input { width: 100%; min-width: 0; }
+.auth-form p { margin: 0; }
