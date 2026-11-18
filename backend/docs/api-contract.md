@@ -30,7 +30,7 @@
 | POST | `/api/auth/logout` | 로그인 | 02 | - | `MessageResponse` |
 | GET | `/api/auth/me` | 로그인 | 02 | - | `MeResponse` |
 | GET | `/api/policies/current` | 로그인 | 04 (FR-R-03) | - | `PolicyView` (구현 완료) |
-| GET | `/api/seats?start_at=&end_at=` | 학생 | 04 | query | `SeatGridResponse` |
+| GET | `/api/seats?start_at=&end_at=` | 학생 | 04 | query | `SeatGridResponse` (+ `bookable`, `notice`: 그 구간을 그대로 예약할 수 있는지, D-28) |
 | POST | `/api/reservations` | 학생 | 05 | `ReservationCreateRequest` | `ReservationResponse` |
 | GET | `/api/me/reservations?status=` | 학생 | 06 | query | `ReservationListResponse` |
 | POST | `/api/reservations/{id}/cancel` | 학생(본인) | 09 | `ReservationCancelRequest` | `ReservationResponse` |
@@ -66,5 +66,7 @@
 | `NOT_CANCELLABLE` | 409 | RESERVED가 아닌 예약, 또는 체크인 마감(시작+15분) 이후 취소 (D-26) | 09 |
 | `REQUEST_KEY_CONFLICT` | 409 | 다른 사용자가 이미 쓴 request_key | 05 |
 | `CSRF_FAILED` | 403 | CSRF 쿠키·헤더 불일치 (D-02) | 공통 |
+| `OPERATION_POLICY_UNAVAILABLE` | 503 | 운영 정책 값 이상 또는 (조회 시) 정책 행 없음 (D-27) | 04·05 |
 
-- 좌석 조회에서 운영 정책이 없거나 시간 설정이 잘못되면 `503 OPERATION_POLICY_UNAVAILABLE`을 반환합니다.
+- 운영 정책의 시간 설정이 잘못되면 좌석 조회·예약 모두 `503 OPERATION_POLICY_UNAVAILABLE`을 반환합니다. (좌석 조회는 정책 행이 없을 때도 503)
+- 시간 검증 규칙은 `app/services/booking_rules.py` 한 곳에서 관리합니다. 조회는 진행 중 시간대까지 허용하고, 예약은 시작 시각이 지나면 거부합니다.

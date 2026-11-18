@@ -118,3 +118,13 @@ def test_us05_timezone_aware_request_is_400_not_500(client, policy, seats, make_
     }
     res = client.post("/api/reservations", json=body, headers=auth_headers(make_user()))
     assert res.status_code == 400 and res.json()["code"] == "INVALID_TIME_RANGE"
+
+
+def test_us05_broken_policy_is_503_not_500(
+    client, db_session, policy, seats, make_user, auth_headers
+):
+    """정책 단위가 0분으로 잘못 저장돼도 서버 오류 대신 503 안내 (조회와 같은 규칙)"""
+    policy.slot_minutes = 0
+    db_session.commit()
+    res = _reserve(client, auth_headers(make_user()), seats[0].id)
+    assert res.status_code == 503 and res.json()["code"] == "OPERATION_POLICY_UNAVAILABLE"

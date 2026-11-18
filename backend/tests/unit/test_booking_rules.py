@@ -7,9 +7,9 @@ from datetime import datetime
 
 import pytest
 
-from app.core.exceptions import BadRequestError
+from app.core.exceptions import BadRequestError, ServiceUnavailableError
 from app.models import OperationPolicy
-from app.services.booking_rules import validate_booking
+from app.services.booking_rules import validate_booking, validate_view
 
 NOW = datetime(2026, 11, 20, 9, 0)  # 금요일 09:00
 
@@ -100,3 +100,37 @@ def test_timezone_aware_input_rejected():
             at(20, 10).replace(tzinfo=kst), at(20, 12).replace(tzinfo=kst), NOW, policy()
         )
     assert e.value.code == "INVALID_TIME_RANGE"
+
+
+# ── 조회(US-04)·예약(US-05)이 같은 규칙인지 — 의도된 차이는 '진행 중 시간대'뿐 ──
+
+
+def test_view_allows_in_progress_slot_but_booking_does_not():
+    """10:15에 10~11시: 조회는 가능('사용 중' 확인), 예약은 불가(이미 시작)"""
+    now = at(20, 10, 15)
+    validate_view(at(20, 10), at(20, 11), now, policy())
+    with pytest.raises(BadRequestError) as e:
+        validate_booking(at(20, 10), at(20, 11), now, policy())
+    assert e.value.code == "OUT_OF_BOOKING_WINDOW"
+
+
+def test_view_rejects_finished_slot():
+    with pytest.raises(BadRequestError) as e:
+        validate_view(at(20, 10), at(20, 11), at(20, 11), policy())
+    assert e.value.code == "OUT_OF_BOOKING_WINDOW"
+
+
+def test_view_does_not_limit_hours():
+    """조회는 넓은 구간(09~22시)도 허용, 예약만 최대 시간 적용"""
+    validate_view(at(20, 9), at(20, 22), NOW, policy())
+
+
+@pytest.mark.parametrize("fn", [validate_view, validate_booking], ids=["조회", "예약"])
+@pytest.mark.parametrize("slot_minutes", [0, -60, 840], ids=["0분", "음수", "운영시간초과"])
+def test_broken_policy_is_503_for_both(fn, slot_minutes):
+    """정책 값이 잘못되면 조회·예약 모두 503 (예전 예약은 0으로 나누기 오류로 500)"""
+    p = policy()
+    p.slot_minutes = slot_minutes
+    with pytest.raises(ServiceUnavailableError) as e:
+        fn(at(20, 10), at(20, 11), NOW, p)
+    assert e.value.code == "OPERATION_POLICY_UNAVAILABLE"

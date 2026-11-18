@@ -35,7 +35,7 @@ async function refreshSeats() {
       start_at: `${date}T${values.get("start")}:00`,
       end_at: seatEndTimestamp(date, values.get("end")),
     };
-    const { seats, policy } = await api("/api/seats", {
+    const { seats, policy, bookable: rangeBookable, notice } = await api("/api/seats", {
       redirectOnUnauthorized: false,
       query: range,
     });
@@ -51,7 +51,8 @@ async function refreshSeats() {
 
     const fragment = document.createDocumentFragment();
     for (const seat of seats) {
-      const bookable = seat.status === "AVAILABLE";
+      // 구간 자체를 예약할 수 없으면(진행 중 시간대·최대 시간 초과) 좌석 클릭도 막음 (D-28)
+      const bookable = rangeBookable !== false && seat.status === "AVAILABLE";
       const tile = document.createElement(bookable ? "button" : "div");
       tile.className = `seat seat-tile ${seat.status}`;
       if (bookable) {
@@ -70,7 +71,10 @@ async function refreshSeats() {
     }
     seatGrid.append(fragment);
     const available = seats.filter((seat) => seat.status === "AVAILABLE").length;
-    if (!seats.length) {
+    if (rangeBookable === false) {
+      // US-04 AC3: 현황은 보여주되 이 구간은 예약할 수 없다는 이유를 안내
+      seatMessage.textContent = `${notice} (현황 확인만 가능해요)`;
+    } else if (!seats.length) {
       seatMessage.textContent = "조회할 수 있는 좌석이 없습니다.";
     } else if (!available) {
       seatMessage.textContent = `선택한 시간대는 만석입니다. (전체 ${seats.length}석)`;
