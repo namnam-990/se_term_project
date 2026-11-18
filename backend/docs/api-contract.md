@@ -67,4 +67,5 @@
 | `REQUEST_KEY_CONFLICT` | 409 | 다른 사용자가 이미 쓴 request_key | 05 |
 | `CSRF_FAILED` | 403 | CSRF 쿠키·헤더 불일치 (D-02) | 공통 |
 
-- 좌석 조회에서 운영 정책이 없거나 시간 설정이 잘못되면 `503 OPERATION_POLICY_UNAVAILABLE`을 반환합니다.
+- 운영 정책의 시간 설정이 잘못되면 좌석 조회·예약 모두 `503 OPERATION_POLICY_UNAVAILABLE`을 반환합니다. (좌석 조회는 정책 행이 없을 때도 503)
+- 시간 검증 규칙은 `app/services/booking_rules.py` 한 곳에서 관리합니다. 조회는 진행 중 시간대까지 허용하고, 예약은 시작 시각이 지나면 거부합니다.

@@ -1,17 +1,18 @@
 """US-04 날짜·시간대별 좌석 현황 조회."""
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
 from app.core.clock import Clock
-from app.core.exceptions import BadRequestError, ServiceUnavailableError
-from app.models import OperationPolicy, ReservationStatus, User
+from app.core.exceptions import ServiceUnavailableError
+from app.models import ReservationStatus, User
 from app.models.enums import SeatViewStatus
 from app.repositories.policy_repository import read_current_policy
 from app.repositories.reservation_repository import find_overlapping
 from app.repositories.seat_repository import list_enabled
 from app.schemas.seat import PolicyView, SeatGridResponse, SeatView
+from app.services.booking_rules import validate_view
 
 STATUS_PRIORITY = {
     SeatViewStatus.AVAILABLE: 0,
@@ -32,7 +33,8 @@ class SeatQueryService:
                 "운영 정책이 등록되지 않았습니다. 관리자에게 문의하세요.",
                 "OPERATION_POLICY_UNAVAILABLE",
             )
-        self._validate_range(start_at, end_at, policy)
+        # 시간 규칙은 예약(US-05)과 같은 booking_rules 사용 — 조회는 진행 중 시간대까지 허용
+        validate_view(start_at, end_at, self.clock.now(), policy)
 
         seats: dict[int, SeatView] = {}
         for seat in list_enabled(self.db):
@@ -64,47 +66,3 @@ class SeatQueryService:
             policy=PolicyView.model_validate(policy),
             seats=list(seats.values()),
         )
-
-    def _validate_range(
-        self, start_at: datetime, end_at: datetime, policy: OperationPolicy
-    ) -> None:
-        if start_at.tzinfo is not None or end_at.tzinfo is not None or start_at >= end_at:
-            raise BadRequestError(
-                "한국 시간 기준으로 시작·종료 시간을 올바르게 입력하세요.", "INVALID_TIME_RANGE"
-            )
-
-        if not (
-            0 <= policy.open_hour < policy.close_hour <= 24
-            and 0 < policy.slot_minutes <= (policy.close_hour - policy.open_hour) * 60
-            and policy.days_ahead >= 0
-        ):
-            raise ServiceUnavailableError(
-                "운영 정책의 시간 설정이 올바르지 않습니다. 관리자에게 문의하세요.",
-                "OPERATION_POLICY_UNAVAILABLE",
-            )
-
-        now = self.clock.now()
-        days_from_today = (start_at.date() - now.date()).days
-        if end_at <= now or days_from_today > policy.days_ahead:
-            raise BadRequestError(
-                "이미 끝난 시간대나 예약 가능 기간을 벗어난 시간은 조회할 수 없습니다.",
-                "OUT_OF_BOOKING_WINDOW",
-            )
-
-        day_start = start_at.replace(hour=0, minute=0, second=0, microsecond=0)
-        opens = timedelta(hours=policy.open_hour)
-        closes = timedelta(hours=policy.close_hour)
-        start_offset = start_at - day_start
-        end_offset = end_at - day_start
-        slot = timedelta(minutes=policy.slot_minutes)
-        if (
-            start_offset < opens
-            or end_offset > closes
-            or (start_offset - opens) % slot
-            or (end_offset - opens) % slot
-        ):
-            raise BadRequestError(
-                f"운영 시간({policy.open_hour:02d}:00~{policy.close_hour:02d}:00) 내에서 "
-                f"{policy.slot_minutes}분 단위로 선택하세요.",
-                "INVALID_TIME_RANGE",
-            )
