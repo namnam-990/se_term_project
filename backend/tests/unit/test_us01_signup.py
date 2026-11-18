@@ -1,6 +1,6 @@
 """US-01 학생 회원가입 및 학교 이메일 인증 — FR-U-01 ~ 06 (Must / 5 SP)
 
-구현 순서: 아래 `pending` 표시를 하나씩 지우면서 테스트를 통과시키세요.
+회원가입·인증의 AC와 오류 처리를 검증한다.
 """
 
 import re
@@ -8,8 +8,6 @@ import re
 import pytest
 
 from app.models import AccountStatus, Role, User
-
-pending = pytest.mark.skip(reason="US-01 구현 전 — 구현 후 이 데코레이터를 지우세요")
 
 VALID = {"student_no": "202299999", "email": "new@example.ac.kr", "password": "Passw0rd!"}
 
@@ -22,7 +20,6 @@ def _token_from_mail(mail) -> str:
     return re.search(r"token=([\w\-]+)", mail.sent[-1]["body"]).group(1)
 
 
-@pending
 def test_us01_ac1_signup_creates_pending_and_sends_mail(client, db_session, mail):
     """Given 유효한 학번·이메일·비밀번호 When 가입 Then PENDING 생성 + 인증 메일(링크·6자리 코드)"""
     res = client.post("/api/auth/signup", json=VALID)
@@ -33,7 +30,6 @@ def test_us01_ac1_signup_creates_pending_and_sends_mail(client, db_session, mail
     assert _token_from_mail(mail)  # D-03 링크 토큰
 
 
-@pending
 def test_us01_ac2_verify_with_code_activates(client, db_session, mail):
     """Given PENDING + 인증 코드 When 인증 Then ACTIVE + ROLE_STUDENT (FR-U-04)"""
     client.post("/api/auth/signup", json=VALID)
@@ -48,7 +44,6 @@ def test_us01_ac2_verify_with_code_activates(client, db_session, mail):
     assert user.role == Role.ROLE_STUDENT
 
 
-@pending
 def test_us01_ac2_verify_with_link_token(client, db_session, mail):
     """D-03: 메일 링크 토큰으로도 인증 가능"""
     client.post("/api/auth/signup", json=VALID)
@@ -56,12 +51,12 @@ def test_us01_ac2_verify_with_link_token(client, db_session, mail):
     assert res.status_code == 200
 
 
-@pending
 def test_us01_wrong_or_expired_code_rejected(client, mail, clock):
     """D-15: 틀린 코드 / 10분 경과 코드 → 400 INVALID_VERIFICATION"""
     client.post("/api/auth/signup", json=VALID)
+    wrong_code = "000000" if _code_from_mail(mail) != "000000" else "111111"
     wrong = client.post(
-        "/api/auth/email-verifications", json={"email": VALID["email"], "code": "000000"}
+        "/api/auth/email-verifications", json={"email": VALID["email"], "code": wrong_code}
     )
     assert wrong.status_code == 400 and wrong.json()["code"] == "INVALID_VERIFICATION"
     clock.advance(minutes=11)
@@ -72,7 +67,6 @@ def test_us01_wrong_or_expired_code_rejected(client, mail, clock):
     assert expired.status_code == 400
 
 
-@pending
 @pytest.mark.parametrize(
     "password",
     ["Pa0!", "Password!!", "Password12", "12345678!"],
@@ -88,7 +82,6 @@ def test_us01_ac3_weak_password_rejected(client, password):
     assert res.json()["code"] == "PASSWORD_POLICY"
 
 
-@pending
 def test_us01_ac4_duplicate_student_no_rejected(client, make_user):
     """Given 같은 학번 존재 When 가입 Then 409 DUPLICATE_STUDENT_NO (FR-U-06)"""
     make_user(VALID["student_no"], email="other@example.ac.kr")
@@ -96,7 +89,6 @@ def test_us01_ac4_duplicate_student_no_rejected(client, make_user):
     assert res.status_code == 409 and res.json()["code"] == "DUPLICATE_STUDENT_NO"
 
 
-@pending
 def test_us01_ac4_duplicate_email_rejected(client, make_user):
     """Given 같은 이메일 존재 When 가입 Then 409 DUPLICATE_EMAIL (FR-U-06)"""
     make_user("202211111", email=VALID["email"])

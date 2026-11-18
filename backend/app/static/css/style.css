@@ -48,3 +48,6 @@ button.seat-tile:hover { filter: brightness(0.95); outline: 2px solid var(--fg);
   .topbar nav { flex-wrap: wrap; }
 }
 .seat-message { font-weight: 600; }
+.auth-form { max-width: 440px; display: grid; align-items: stretch; }
+.auth-form input { width: 100%; min-width: 0; }
+.auth-form p { margin: 0; }

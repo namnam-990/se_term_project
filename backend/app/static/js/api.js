@@ -6,7 +6,9 @@ function getCookie(name) {
 
 // 공통 fetch 래퍼 — 모든 화면은 이 함수로 API를 호출한다.
 // 서버 오류 형식: { code, message }  (docs/api-contract.md)
-async function api(path, { method = "GET", body, query, redirectOnUnauthorized = true } = {}) {
+let refreshInFlight = null;
+
+async function api(path, { method = "GET", body, query, redirectOnUnauthorized = true, retried = false } = {}) {
   const url = new URL(path, location.origin);
   if (query) Object.entries(query).forEach(([k, v]) => v != null && url.searchParams.set(k, v));
   const res = await fetch(url, {
@@ -19,6 +21,22 @@ async function api(path, { method = "GET", body, query, redirectOnUnauthorized =
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = res.status === 204 ? null : await res.json().catch(() => null);
+  const protectedRequest = !path.startsWith("/api/auth/") ||
+    ["/api/auth/me", "/api/auth/logout"].includes(path);
+  if (res.status === 401 && protectedRequest && !retried && getCookie("csrf_token")) {
+    if (!refreshInFlight) {
+      refreshInFlight = api("/api/auth/refresh", {
+        method: "POST", redirectOnUnauthorized: false,
+      }).finally(() => { refreshInFlight = null; });
+    }
+    try {
+      await refreshInFlight;
+    } catch (error) {
+      if (redirectOnUnauthorized && error.status === 401) location.href = "/login";
+      throw error;
+    }
+    return api(path, { method, body, query, redirectOnUnauthorized, retried: true });
+  }
   if (!res.ok) {
     const err = new Error(data?.message || `요청 실패 (${res.status})`);
     err.status = res.status;
@@ -42,3 +60,29 @@ function toast(message, ok = false) {
 
 // 예약 중복 전송 방지용 요청 키 (US-05)
 const newRequestKey = () => crypto.randomUUID();
+
+async function updateAuthNavigation() {
+  const login = document.getElementById("nav-login");
+  const logout = document.getElementById("nav-logout");
+  if (!login || !logout) return;
+  logout.addEventListener("click", async () => {
+    logout.disabled = true;
+    try {
+      await api("/api/auth/logout", { method: "POST" });
+      location.href = "/login";
+    } catch (error) {
+      toast(error.message || "로그아웃하지 못했습니다.");
+      logout.disabled = false;
+    }
+  });
+  if (!getCookie("csrf_token")) return;
+  try {
+    await api("/api/auth/me", { redirectOnUnauthorized: false });
+    login.hidden = true;
+    logout.hidden = false;
+  } catch (_) {
+    login.hidden = false;
+    logout.hidden = true;
+  }
+}
+updateAuthNavigation();
