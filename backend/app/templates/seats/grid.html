@@ -4,11 +4,23 @@
 <h1>좌석 현황</h1>
 <form id="seat-filters" class="filters">
   <label>날짜 <input name="date" type="date" required></label>
-  <label>시작 시간 <input name="start" type="time" required></label>
-  <label>종료 시간 <input name="end" type="time" required></label>
+  <!-- 운영 시간·단위는 정책(GET /api/policies/current)에서 읽어 옵션을 만든다 (D-11) -->
+  <fieldset class="time-pick">
+    <legend>시작 시간</legend>
+    <select name="start_hour" aria-label="시작 시" required><option value="">--</option></select>
+    <span>시</span>
+    <select name="start_minute" aria-label="시작 분" required><option value="">--</option></select>
+    <span>분</span>
+  </fieldset>
+  <fieldset class="time-pick">
+    <legend>종료 시간</legend>
+    <select name="end_hour" aria-label="종료 시" required><option value="">--</option></select>
+    <span>시</span>
+    <select name="end_minute" aria-label="종료 분" required><option value="">--</option></select>
+    <span>분</span>
+  </fieldset>
   <button class="btn" type="submit">조회</button>
 </form>
-<p id="seat-midnight-hint" class="muted" hidden>자정까지 조회하려면 종료 시간을 00:00으로 선택하세요.</p>
 <p id="seat-policy" class="muted" hidden></p>
 <ul class="seat-legend" aria-label="좌석 상태 범례">
   <li class="seat AVAILABLE">예약 가능</li>

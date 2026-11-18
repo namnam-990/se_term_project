@@ -21,9 +21,9 @@ def policy(exam: bool = False) -> OperationPolicy:
         normal_max_hours=4,
         exam_days_ahead=1,
         exam_max_hours=3,
-        open_hour=9,
-        close_hour=22,
-        slot_minutes=60,
+        open_hour=6,
+        close_hour=23,
+        slot_minutes=30,
     )
 
 
@@ -34,12 +34,13 @@ def at(day: int, hour: int, minute: int = 0) -> datetime:
 @pytest.mark.parametrize(
     "start,end",
     [
-        (at(20, 9), at(20, 13)),  # 운영 시작 시각 + 정확히 4시간
-        (at(20, 18), at(20, 22)),  # 운영 종료 시각까지
-        (at(27, 10), at(27, 11)),  # 오늘+7일 (마지막 허용일)
+        (at(20, 9), at(20, 13)),  # 정확히 4시간
+        (at(20, 19), at(20, 23)),  # 운영 종료 시각(23시)까지
+        (at(20, 10, 30), at(20, 11)),  # 30분 단위 (정시가 아니어도 됨)
+        (at(27, 6), at(27, 7)),  # 오늘+7일, 운영 시작 시각(06시)
         (at(20, 9), at(20, 10)),  # 지금 시각에 시작
     ],
-    ids=["4시간-정확히", "22시-종료", "+7일", "현재시각-시작"],
+    ids=["4시간-정확히", "23시-종료", "30분-단위", "+7일-06시", "현재시각-시작"],
 )
 def test_allowed_boundaries(start, end):
     validate_booking(start, end, NOW, policy())
@@ -50,15 +51,15 @@ def test_allowed_boundaries(start, end):
     [
         (at(20, 12), at(20, 10), "INVALID_TIME_RANGE"),  # 역순
         (at(20, 10), at(20, 10), "INVALID_TIME_RANGE"),  # 0분
-        (at(20, 21), at(21, 1), "INVALID_TIME_RANGE"),  # 날짜 넘김 (22시 종료 정책)
-        (at(20, 8), at(20, 10), "INVALID_TIME_RANGE"),  # 운영 시작 전
-        (at(20, 21), at(20, 23), "INVALID_TIME_RANGE"),  # 운영 종료 후
-        (at(20, 10, 30), at(20, 12), "INVALID_TIME_RANGE"),  # 60분 단위 아님
+        (at(20, 22), at(21, 0), "INVALID_TIME_RANGE"),  # 날짜 넘김 (23시 종료 정책)
+        (at(21, 5, 30), at(21, 7), "INVALID_TIME_RANGE"),  # 운영 시작(06시) 전
+        (at(20, 22, 30), at(20, 23, 30), "INVALID_TIME_RANGE"),  # 운영 종료(23시) 후
+        (at(20, 10, 15), at(20, 12), "INVALID_TIME_RANGE"),  # 30분 단위 아님
         (at(19, 10), at(19, 12), "OUT_OF_BOOKING_WINDOW"),  # 어제
         (at(28, 10), at(28, 12), "OUT_OF_BOOKING_WINDOW"),  # 오늘+8일
-        (at(20, 10), at(20, 15), "EXCEEDS_MAX_HOURS"),  # 5시간
+        (at(20, 10), at(20, 14, 30), "EXCEEDS_MAX_HOURS"),  # 4시간 30분
     ],
-    ids=["역순", "0분", "날짜넘김", "운영전", "운영후", "단위", "과거", "+8일", "5시간"],
+    ids=["역순", "0분", "날짜넘김", "운영전", "운영후", "단위", "과거", "+8일", "4시간30분"],
 )
 def test_rejected(start, end, code):
     with pytest.raises(BadRequestError) as e:
@@ -121,12 +122,12 @@ def test_view_rejects_finished_slot():
 
 
 def test_view_does_not_limit_hours():
-    """조회는 넓은 구간(09~22시)도 허용, 예약만 최대 시간 적용"""
-    validate_view(at(20, 9), at(20, 22), NOW, policy())
+    """조회는 넓은 구간(09~23시)도 허용, 예약만 최대 시간 적용"""
+    validate_view(at(20, 9), at(20, 23), NOW, policy())
 
 
 @pytest.mark.parametrize("fn", [validate_view, validate_booking], ids=["조회", "예약"])
-@pytest.mark.parametrize("slot_minutes", [0, -60, 840], ids=["0분", "음수", "운영시간초과"])
+@pytest.mark.parametrize("slot_minutes", [0, -30, 1050], ids=["0분", "음수", "운영시간초과"])
 def test_broken_policy_is_503_for_both(fn, slot_minutes):
     """정책 값이 잘못되면 조회·예약 모두 503 (예전 예약은 0으로 나누기 오류로 500)"""
     p = policy()

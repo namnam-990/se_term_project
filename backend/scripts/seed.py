@@ -1,9 +1,11 @@
 """시드 데이터 — 데모 준비물 (데모 루브릭 '즉시 실행 가능한 환경 준비').
 
     python -m scripts.seed
+    python -m scripts.seed --reset-policy   # 운영 정책을 현재 기본값(06~23시·30분 등)으로 되돌림
 
 여러 번 실행해도 중복 생성되지 않는다. 생성 내용:
-- 운영 정책 1행 (명세서 기본값: 평상시 +7일·4시간 / 시험 +1일·3시간)
+- 운영 정책 1행 (평상시 +7일·4시간 / 시험 +1일·3시간 / 운영 06:00~23:00 / 30분 단위, D-11)
+  이미 정책이 있으면 그대로 둔다. 기본값이 바뀌었을 때는 --reset-policy 로 갱신
 - 좌석 40석 (A~D열 × 10)
 - 계정 (비밀번호는 아래 표 참고)
     admin       관리자                       Admin!2345  (.env SEED_ADMIN_*)
@@ -13,6 +15,7 @@
     202200004   학생 ACTIVE + 이용 제한 3일   Student!234  ← US-05 AC4 시연
 """
 
+import sys
 from datetime import timedelta
 
 from sqlalchemy import select
@@ -46,7 +49,12 @@ def run():
     s = get_settings()
     now = Clock().now()
     with SessionLocal() as db:
-        if db.get(OperationPolicy, 1) is None:
+        existing_policy = db.get(OperationPolicy, 1)
+        if existing_policy is not None and "--reset-policy" in sys.argv:
+            db.delete(existing_policy)
+            db.flush()
+            existing_policy = None
+        if existing_policy is None:
             db.add(OperationPolicy(id=1))
 
         existing = set(db.scalars(select(Seat.seat_number)))
@@ -96,6 +104,16 @@ def run():
         db.commit()
 
     print("seed done")
+    with SessionLocal() as db:
+        p = db.get(OperationPolicy, 1)
+        mode = "시험 기간" if p.exam_mode else "평상시"
+        print(
+            f"  policy: 운영 {p.open_hour:02d}:00~{p.close_hour:02d}:00 · {p.slot_minutes}분 단위"
+        )
+        print(f"          {mode} +{p.days_ahead}일 · 최대 {p.max_hours}시간")
+        if (p.open_hour, p.close_hour, p.slot_minutes) != (6, 23, 30):
+            print("  ⚠️ 운영 정책이 기본값(06~23시·30분)과 다릅니다")
+            print("     → python -m scripts.seed --reset-policy")
     print(f"  seats: {len(ROWS) * COLS}  admin: {s.seed_admin_login_id} / {s.seed_admin_password}")
     for no, _, name, status in STUDENTS:
         print(f"  {no} ({name}, {status.value}) / {DEMO_PASSWORD}")

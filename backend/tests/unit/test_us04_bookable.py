@@ -28,8 +28,8 @@ def test_in_progress_slot_viewable_but_not_bookable(
 
 
 def test_too_long_range_viewable_but_not_bookable(client, policy, seats, make_user, auth_headers):
-    """09~22시처럼 넓게 조회 → 현황은 보여주되 '최대 4시간' 안내"""
-    res = _grid(client, auth_headers(make_user()), "2026-11-20T09:00:00", "2026-11-20T22:00:00")
+    """09~23시처럼 넓게 조회 → 현황은 보여주되 '최대 4시간' 안내"""
+    res = _grid(client, auth_headers(make_user()), "2026-11-20T09:00:00", "2026-11-20T23:00:00")
     assert res.status_code == 200
     assert res.json()["bookable"] is False
     assert "최대 4시간" in res.json()["notice"]

@@ -73,8 +73,8 @@ def test_us05_ac4_restricted_user_rejected_with_release_date(
     [
         ("10:00", "15:00", 20, "EXCEEDS_MAX_HOURS"),  # 5시간 > 4시간
         ("10:00", "12:00", 28, "OUT_OF_BOOKING_WINDOW"),  # 오늘+8일
-        ("10:30", "12:00", 20, "INVALID_TIME_RANGE"),  # 60분 단위 아님
-        ("21:00", "23:00", 20, "INVALID_TIME_RANGE"),  # 운영시간(22시) 밖
+        ("10:15", "12:00", 20, "INVALID_TIME_RANGE"),  # 30분 단위 아님
+        ("22:30", "23:30", 20, "INVALID_TIME_RANGE"),  # 운영시간(23시) 밖
         ("12:00", "10:00", 20, "INVALID_TIME_RANGE"),  # 시작 >= 종료
     ],
     ids=["최대시간초과", "기간초과", "단위불일치", "운영시간밖", "역순"],
@@ -128,3 +128,9 @@ def test_us05_broken_policy_is_503_not_500(
     db_session.commit()
     res = _reserve(client, auth_headers(make_user()), seats[0].id)
     assert res.status_code == 503 and res.json()["code"] == "OPERATION_POLICY_UNAVAILABLE"
+
+
+def test_us05_half_hour_slot_allowed(client, policy, seats, make_user, auth_headers):
+    """D-11 개정: 30분 단위 예약 (10:30~12:00) 허용"""
+    res = _reserve(client, auth_headers(make_user()), seats[0].id, "10:30", "12:00")
+    assert res.status_code == 200
