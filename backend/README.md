@@ -14,8 +14,9 @@
 → 상세 계획·담당·AC 체크리스트: [`docs/sprint1-plan.md`](docs/sprint1-plan.md)
 → **데모 준비(시연 순서·예외 케이스·코드 설명)**: [`docs/sprint1-demo.md`](docs/sprint1-demo.md)
 
-**개발 방법**: US별 AC 테스트가 `tests/unit/test_us0X_*.py`에 `@pending`(건너뜀) 상태로 준비돼 있어요.
-담당 Service 함수를 구현하고 `@pending`을 하나씩 지워 통과시키면 됩니다.
+**개발 상태**: US-01·02·03 인증 서비스·화면을 구현하고 담당 AC 테스트의 `@pending`을 해제했습니다.
+인증 설명·검증 범위는 [`docs/code-notes/us01-us03.md`](docs/code-notes/us01-us03.md)를 참고하세요.
+MySQL 통합 테스트는 `TEST_DATABASE_URL` 설정이 필요하며, 미설정으로 건너뛴 결과는 통과로 계산하지 않습니다.
 
 ## 2. 빠른 시작
 
