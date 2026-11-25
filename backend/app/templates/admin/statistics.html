@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}이용 통계{% endblock %}
+{% block content %}
+<!--
+  US-16 시간대별·날짜별 통계 (Could, Sprint 2 스켈레톤) — 담당: US-16 담당자
+  GET /api/admin/statistics?from=YYYY-MM-DD&to=YYYY-MM-DD
+-->
+{% include "admin/_nav.html" %}
+<h1>이용 통계</h1>
+<form id="stats-form" class="filters">
+  <label>시작일 <input name="from" type="date" required></label>
+  <label>종료일 <input name="to" type="date" required></label>
+  <button class="btn" type="submit">조회</button>
+</form>
+<p id="stats-message" role="status"></p>
+<div id="stats-result"></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='js/admin-statistics.js') }}"></script>{% endblock %}

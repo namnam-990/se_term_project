@@ -1,4 +1,4 @@
-"""Reservation Router — US-05·06·09."""
+"""Reservation Router — US-05·06·09 (Sprint 1) · US-19 퇴실 (Sprint 2)."""
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -58,3 +58,18 @@ def cancel_reservation(
     svc: ReservationService = Depends(get_reservation_service),
 ):
     return svc.cancel_by_student(user, reservation_id, req)
+
+
+# ───────────── Sprint 2 ─────────────
+@router.post(
+    "/reservations/{reservation_id}/checkout",
+    response_model=ReservationResponse,
+    dependencies=[Depends(verify_csrf)],
+)
+def checkout_reservation(
+    reservation_id: int,
+    user: User = Depends(require_student),
+    svc: ReservationService = Depends(get_reservation_service),
+):
+    """US-19 퇴실 (설계서 4장 checkout, D-01, Backlog v1.2.0)."""
+    return svc.checkout(user, reservation_id)

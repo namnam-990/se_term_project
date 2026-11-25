@@ -24,3 +24,16 @@ def find_active(db: Session, user_id: int, now: datetime) -> UserRestriction | N
         .order_by(UserRestriction.ends_at.desc())
         .limit(1)
     )
+
+
+# ───────────────────────── Sprint 2 (스켈레톤 — 담당자가 구현) ─────────────────────────
+
+
+def list_active(db: Session, user_id: int, now: datetime) -> list[UserRestriction]:
+    """US-10·14: 지금 활성인 제한 전체 (D-17 연장 판단, 관리자 해제 시 전부 released_at 기록)."""
+    raise NotImplementedError("US-10/14 list_active")
+
+
+def add(db: Session, restriction: UserRestriction) -> UserRestriction:
+    """US-10·14: 제한 이력 추가 (삭제하지 않고 이력으로 남긴다, D-51)."""
+    raise NotImplementedError("US-10/14 add")

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}학생 관리{% endblock %}
+{% block content %}
+<!--
+  학생 관리 (Sprint 2 스켈레톤)
+  - US-13 목록·검색: GET /api/admin/users?student_no=&seat_number=          담당: US-13 담당자
+  - US-14 제한 설정/해제·노쇼 초기화: PUT·DELETE …/restriction, POST …/no-shows/reset
+  - US-11 강제 취소: 학생 행의 예약(D-38) → POST /api/admin/reservations/{id}/cancel (사유 필수, 패널티 선택)
+  - US-17 권한 부여·회수 (Could): PUT /api/admin/users/{id}/role
+-->
+{% include "admin/_nav.html" %}
+<h1>학생 관리</h1>
+<form id="user-search" class="filters">
+  <label>학번 <input name="student_no" maxlength="20"></label>
+  <label>좌석번호 <input name="seat_number" maxlength="10" placeholder="예: A-01"></label>
+  <button class="btn" type="submit">검색</button>
+</form>
+<p id="user-message" role="status"></p>
+<div class="scroll-region">
+  <table id="user-table" class="reservation-table" hidden aria-label="학생 목록">
+    <thead><tr><th scope="col">학번</th><th scope="col">이메일</th><th scope="col">계정 상태</th><th scope="col">노쇼</th><th scope="col">이용 제한</th><th scope="col">예약</th><th scope="col">관리</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='js/admin-users.js') }}"></script>{% endblock %}

@@ -76,3 +76,38 @@ def add(db: Session, reservation: Reservation) -> Reservation:
     db.add(reservation)
     db.flush()
     return reservation
+
+
+# ───────────────────────── Sprint 2 (스켈레톤 — 담당자가 구현) ─────────────────────────
+
+
+def find_no_show_candidates(db: Session, now: datetime, check_in_minutes: int) -> list[int]:
+    """US-10: 노쇼 후보 예약 ID 목록.
+
+    조건: status = RESERVED AND start_at + check_in_minutes ≤ now (D-14·D-32 마감과 같은 경계)
+    - 잠그지 않고 ID만 가져온다. 실제 처리는 NoShowService가 건마다 회원 → 예약 잠금 후 다시
+      확인 (D-36).
+    - 서버가 꺼졌다 켜져도 밀린 건을 다음 실행에서 한꺼번에 처리한다.
+    """
+    raise NotImplementedError("US-10 find_no_show_candidates")
+
+
+def list_active_at(db: Session, now: datetime) -> list[Reservation]:
+    """US-12 대시보드: 지금 시점의 RESERVED·CHECKED_IN 예약 (시작 ≤ now < 종료).
+
+    좌석별 3상태(D-42)와 지표 계산은 AdminDashboardService에서 한다.
+    """
+    raise NotImplementedError("US-12 list_active_at")
+
+
+def list_current_and_upcoming_for_user(
+    db: Session, user_id: int, now: datetime
+) -> list[Reservation]:
+    """US-13·D-38: 관리자 학생 목록에 함께 보여줄 예약 (종료 > now 인 RESERVED·CHECKED_IN,
+    시작순)."""
+    raise NotImplementedError("US-13 list_current_and_upcoming_for_user")
+
+
+def list_checked_in_between(db: Session, start: datetime, end: datetime) -> list[Reservation]:
+    """US-16 통계 (Could): 조회 구간과 겹치는 체크인 이력 (checked_in_at IS NOT NULL)."""
+    raise NotImplementedError("US-16 list_checked_in_between")

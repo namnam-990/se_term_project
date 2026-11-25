@@ -172,11 +172,20 @@ class ReservationService:
             reservation.penalty_applied = False
         return reservation
 
-    def checkout(self, user: User, reservation_id: int):
-        """퇴실 (Sprint 2, 설계서 4장, D-01)
-        예약 잠금 → 본인·CHECKED_IN 검증 → COMPLETED + ended_at 기록 → 좌석 즉시 가용, 노쇼 없음
+    # ──────────────────────────── US-19 퇴실 (Sprint 2) ────────────────────────────
+    def checkout(self, user: User, reservation_id: int) -> Reservation:
+        """US-19 이용 종료(퇴실) — 설계서 4장 checkout, D-01, Backlog v1.2.0 (D-47)
+
+        with transaction(db):
+          1. reservation_repository.lock_by_id (예약만 잠금 — 회원 값을 바꾸지 않음, D-36)
+          2. 없으면 404 RESERVATION_NOT_FOUND / 본인 아니면 403 NOT_OWNER (AC3)
+          3. CHECKED_IN이 아니면 409 NOT_CHECKOUTABLE ("체크인한 예약만 퇴실할 수 있습니다.") (AC2)
+          4. status = COMPLETED, ended_at = now (AC1)
+        - 좌석: COMPLETED는 겹침 검사 대상(RESERVED·CHECKED_IN)이 아니므로 즉시 가용 (AC1)
+        - 노쇼 카운터는 건드리지 않음 (AC4, 설계서 "본인 퇴실은 노쇼를 부과하지 않는다")
+        - 이용 제한 중이어도 퇴실 가능 (D-51)
         """
-        raise NotImplementedError("Sprint 2 checkout")
+        raise NotImplementedError("US-19 퇴실")
 
     def _now(self) -> datetime:
         return self.clock.now()

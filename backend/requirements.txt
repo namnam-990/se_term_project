@@ -11,3 +11,6 @@ cryptography==44.0.0
 bcrypt==4.2.1
 tzdata==2024.2  # Windows에는 IANA 시간대 DB가 없어 zoneinfo("Asia/Seoul")에 필요
 PyJWT==2.10.1
+# Sprint 2
+APScheduler==3.10.4  # US-10 노쇼 감지 10분 주기 (설계서 5장: APScheduler 단일 인스턴스, D-37)
+segno==1.6.1  # US-07 서버 QR 생성 (순수 파이썬, SVG 출력, D-29)

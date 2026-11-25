@@ -26,6 +26,8 @@ class ReservationResponse(ORMModel):
     status: ReservationStatus
     cancel_reason: str | None = None
     created_at: datetime | None = None
+    checked_in_at: datetime | None = None  # Sprint 2 US-08
+    ended_at: datetime | None = None  # Sprint 2 US-19 퇴실·강제 종료 (D-01·D-40)
 
 
 class ReservationListResponse(BaseModel):

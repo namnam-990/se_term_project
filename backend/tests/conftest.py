@@ -8,6 +8,10 @@
 import os
 from datetime import datetime, timedelta
 
+# Sprint 2: 테스트에서는 노쇼 스케줄러를 항상 끈다 (.env보다 환경 변수가 우선, D-37).
+# 노쇼 로직은 NoShowService(db, clock).run()을 직접 호출해서 검증한다.
+os.environ["SCHEDULER_ENABLED"] = "false"
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
