@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}체크인 단말{% endblock %}
+{% block content %}
+<!--
+  US-08 체크인 단말 (Sprint 2 스켈레톤) — 담당: US-08 담당자
+  D-30: 학생이 가진 QR을 도서관 단말기가 스캔. 이 화면은 관리자 계정으로 로그인해서 띄워 둔다.
+  D-31: 카메라 스캔만 (코드 직접 입력 없음). 서버 PC에서 http://localhost:8000/kiosk 로 열면 HTTPS 없이 웹캠 사용 가능.
+  TODO
+   1. QR 읽기 라이브러리(jsQR, MIT)를 app/static/vendor/jsQR.js 로 추가하고 아래 script 주석 해제
+   2. kiosk.js: getUserMedia로 웹캠 → canvas 프레임 → jsQR → payload "LSRS|r=..|seat=..|t=.."
+      → POST /api/reservations/{r}/check-in {token: t} → 결과 표시 후 몇 초 뒤 다시 스캔
+-->
+<h1>체크인 단말</h1>
+<p class="muted">예약한 학생의 QR 코드를 카메라에 비춰 주세요. (예약 시작부터 15분 이내)</p>
+<video id="kiosk-video" class="kiosk-video" autoplay playsinline muted></video>
+<canvas id="kiosk-canvas" hidden></canvas>
+<p id="kiosk-message" class="seat-message" role="status">카메라를 준비하는 중입니다.</p>
+{% endblock %}
+{% block scripts %}
+<!-- <script src="{{ url_for('static', path='vendor/jsQR.js') }}"></script> -->
+<script src="{{ url_for('static', path='js/kiosk.js') }}"></script>
+{% endblock %}

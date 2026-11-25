@@ -55,3 +55,11 @@ button.seat-tile:hover { filter: brightness(0.95); outline: 2px solid var(--fg);
 .auth-form { max-width: 440px; display: grid; align-items: stretch; }
 .auth-form input { width: 100%; min-width: 0; }
 .auth-form p { margin: 0; }
+/* Sprint 2 — 관리자 그리드 3상태 (D-42), 관리자 메뉴, 체크인 단말 */
+.seat.EMPTY { background: #e5e7eb; color: #111827; }
+.seat.WAITING { background: var(--seat-reserved); color: #111827; }
+.admin-nav { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 16px; }
+.metrics { display: flex; flex-wrap: wrap; gap: 24px; margin: 0 0 12px; }
+.metrics dt { color: var(--muted); }
+.metrics dd { margin: 0; font-size: 1.6rem; font-weight: 700; }
+.kiosk-video { width: 100%; max-width: 480px; background: #111827; border-radius: 8px; }

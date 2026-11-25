@@ -3,6 +3,8 @@
 Repository는 '어떻게 꺼내고 저장하는가'만 담당한다. 업무 판단(if …)은 Service에서.
 """
 
+from datetime import datetime
+
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
@@ -46,3 +48,16 @@ def add(db: Session, user: User) -> User:
     db.add(user)
     db.flush()  # id 채우기
     return user
+
+
+# ───────────────────────── Sprint 2 (스켈레톤 — 담당자가 구현) ─────────────────────────
+
+
+def list_students(db: Session, student_no: str | None = None) -> list[User]:
+    """US-13 AC1·2: 학생 목록 (학번 검색 시 일치하는 학생만). 학번순."""
+    raise NotImplementedError("US-13 list_students")
+
+
+def find_students_by_seat(db: Session, seat_number: str, now: datetime) -> list[User]:
+    """US-13 AC2 좌석번호 검색 (D-43): 그 좌석을 지금 점유 중이거나 오늘 남은 예약이 있는 학생."""
+    raise NotImplementedError("US-13 find_students_by_seat")

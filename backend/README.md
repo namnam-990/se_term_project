@@ -10,13 +10,17 @@
 
 ## 1. 현재 스프린트
 
-**Sprint 1 — Core (30 SP)**: 회원 인증, 실시간 좌석 조회, 동시성 안전 예약, 내역 조회, 직접 취소
-→ 상세 계획·담당·AC 체크리스트: [`docs/sprint1-plan.md`](docs/sprint1-plan.md)
-→ **데모 준비(시연 순서·예외 케이스·코드 설명)**: [`docs/sprint1-demo.md`](docs/sprint1-demo.md)
+**Sprint 2 — Quality & Admin (37 SP)**: QR 체크인·퇴실, 노쇼 자동 취소·이용 제한, 관리자 대시보드·학생 관리·정책 전환
+→ 계획·담당·AC 체크리스트·스켈레톤 사용법: [`docs/sprint2-plan.md`](docs/sprint2-plan.md)
+→ 결정 기록 (D-29~D-51, 설계서 대비 기록): [`docs/decisions.md`](docs/decisions.md) 5·6장
 
-**개발 상태**: Sprint 1 범위(US-01·02·03·04·05·06·09)의 서비스·화면을 구현하고 단위 테스트의 `@pending`을 모두 해제했습니다.
-코드 설명·검증 범위: [`docs/code-notes/us01-us03.md`](docs/code-notes/us01-us03.md) · [`docs/code-notes/us05-us09.md`](docs/code-notes/us05-us09.md)
-MySQL 통합 테스트는 `TEST_DATABASE_URL` 설정이 필요하며, 미설정으로 건너뛴 결과는 통과로 계산하지 않습니다.
+**개발 상태**: Sprint 1(US-01~06·09) 구현 완료. Sprint 2는 **스켈레톤 단계** — API·화면·서비스 틀이 등록돼 있고 구현 전에는 `501 NOT_IMPLEMENTED`를 반환합니다. AC 테스트는 `@pending`으로 건너뜁니다.
+
+<details><summary>Sprint 1 — Core (30 SP)</summary>
+
+회원 인증, 실시간 좌석 조회, 동시성 안전 예약, 내역 조회, 직접 취소
+→ [`docs/sprint1-plan.md`](docs/sprint1-plan.md) · 데모 [`docs/sprint1-demo.md`](docs/sprint1-demo.md) · 코드 설명 [`docs/code-notes/`](docs/code-notes/)
+</details>
 
 ## 2. 빠른 시작
 

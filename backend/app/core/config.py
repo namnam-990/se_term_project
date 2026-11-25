@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     mail_from: str = "no-reply@lsrs.local"
     allowed_email_domain: str = ""  # 예: "university.ac.kr" (비우면 도메인 검사 생략)
 
+    # Sprint 2 US-10 (D-37): 노쇼 감지 스케줄러. US-10 구현 전에는 False로 두고, 구현 후
+    # True로 바꾼다.
+    # 테스트(conftest)는 항상 끈다 — 테스트는 NoShowService.run()을 직접 호출한다.
+    scheduler_enabled: bool = False
+
     seed_admin_login_id: str = "admin"
     seed_admin_password: str = "Admin!2345"
 

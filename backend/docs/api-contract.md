@@ -1,6 +1,6 @@
-# API 계약 — Sprint 1
+# API 계약 — Sprint 1 · 2
 
-설계서 4장(REST Endpoint Catalog) 중 Sprint 1 범위. 명세서와 충돌하면 [`decisions.md`](decisions.md)를 따릅니다. 필드명은 `app/schemas/*.py`가 기준이며, 바꾸면 이 문서도 같은 PR에서 수정합니다.
+설계서 4장(REST Endpoint Catalog). Sprint 2 항목은 스켈레톤(501)으로 등록돼 있고, 구현하면서 이 표를 기준으로 맞춘다. 명세서와 충돌하면 [`decisions.md`](decisions.md)를 따릅니다. 필드명은 `app/schemas/*.py`가 기준이며, 바꾸면 이 문서도 같은 PR에서 수정합니다.
 
 ## 공통
 
@@ -36,6 +36,26 @@
 | GET | `/api/me/reservations?status=` | 학생 | 06 | query | `ReservationListResponse` |
 | POST | `/api/reservations/{id}/cancel` | 학생(본인) | 09 | `ReservationCancelRequest` | `ReservationResponse` |
 
+### Sprint 2
+
+| Method | Path | 권한 | US | 요청 | 응답 |
+|---|---|---|---|---|---|
+| GET | `/api/reservations/{id}/qr` | 학생(본인) | 07 | - | `QrResponse` (`active`=false면 `payload`·`svg` 없음, D-33) |
+| POST | `/api/reservations/{id}/check-in` | **관리자(체크인 단말)** | 08 | `CheckInRequest {token}` | `ReservationResponse` (D-30) |
+| POST | `/api/reservations/{id}/checkout` | 학생(본인) | 19 | - | `ReservationResponse` (COMPLETED) |
+| POST | `/api/admin/reservations/{id}/cancel` | 관리자 | 11 | `AdminCancelRequest {reason, detail, apply_penalty}` | `ReservationResponse` |
+| GET | `/api/admin/dashboard` | 관리자 | 12 | - | `DashboardResponse` (그리드 3상태 `EMPTY·IN_USE·WAITING`, D-42) |
+| GET | `/api/admin/users?student_no=&seat_number=` | 관리자 | 13 | query | `AdminUserListResponse` (학생별 `reservations` 포함, D-38) |
+| PUT | `/api/admin/users/{id}/restriction` | 관리자 | 14 | `RestrictionSetRequest {until, reason}` | `AdminUserItem` |
+| DELETE | `/api/admin/users/{id}/restriction` | 관리자 | 14 | - | `AdminUserItem` |
+| POST | `/api/admin/users/{id}/no-shows/reset` | 관리자 | 14 | - | `AdminUserItem` |
+| PUT | `/api/admin/policies/current` | 관리자 | 15 | `PolicyUpdateRequest` | `PolicyView` (초기값은 `GET /api/policies/current`) |
+| GET | `/api/admin/statistics?from=&to=` | 관리자 | 16 (Could) | query | `StatisticsResponse` |
+| PUT | `/api/admin/users/{id}/role` | 관리자 | 17 (Could) | `RoleChangeRequest {role}` | `AdminUserItem` |
+| (내부) | 노쇼 스케줄러 10분 주기 | - | 10 | - | `NoShowService.run()` (D-37) |
+
+**QR 문자열 (D-29)**: `LSRS|r=<예약ID>|seat=<좌석번호>|t=<토큰>` — `app/services/qr_service.py`의 `build_payload`·`parse_payload`가 기준. 바꾸면 US-07·08 담당자가 함께 수정.
+
 ## 오류 코드 목록
 
 새 코드를 추가하면 여기에 한 줄 추가하세요.
@@ -69,6 +89,18 @@
 | `REQUEST_KEY_CONFLICT` | 409 | 다른 사용자가 이미 쓴 request_key | 05 |
 | `CSRF_FAILED` | 403 | CSRF 쿠키·헤더 불일치 (D-02) | 공통 |
 | `OPERATION_POLICY_UNAVAILABLE` | 503 | 운영 정책 값 이상 또는 (조회 시) 정책 행 없음 (D-27) | 04·05 |
+| `NOT_IMPLEMENTED` | 501 | Sprint 2 스켈레톤 (구현 전) | 공통 |
+| `INVALID_QR` | 400 | QR 토큰 불일치·형식 오류 | 08 |
+| `ALREADY_CHECKED_IN` | 409 | 이미 체크인된 예약 | 08 |
+| `RESERVATION_NOT_ACTIVE` | 409 | RESERVED가 아닌 예약(취소·자동 취소·이용 완료)으로 체크인 | 08 |
+| `CHECKIN_WINDOW` | 409 | 시작 전 또는 시작+15분 이후 체크인 (D-32) | 08 |
+| `NOT_CHECKOUTABLE` | 409 | CHECKED_IN이 아닌 예약 퇴실 | 19 |
+| `REASON_REQUIRED` | 400 | 관리자 강제 취소 사유 없음 | 11 |
+| `USER_NOT_FOUND` | 404 | 관리자 기능 대상 학생 없음 | 13·14·17 |
+| `INVALID_RESTRICTION_DATE` | 400 | 오늘 이전 날짜로 수동 제한 | 14 |
+| `INVALID_POLICY` | 400 | 정책 값 조합 이상 (저장 전 검사, D-45) | 15 |
+| `INVALID_PERIOD` | 400 | 통계 시작일 > 종료일 | 16 |
+| `CANNOT_CHANGE_OWN_ROLE` | 400 | 본인 관리자 권한 회수 | 17 |
 
 - 운영 정책의 시간 설정이 잘못되면 좌석 조회·예약 모두 `503 OPERATION_POLICY_UNAVAILABLE`을 반환합니다. (좌석 조회는 정책 행이 없을 때도 503)
 - 시간 검증 규칙은 `app/services/booking_rules.py` 한 곳에서 관리합니다. 조회는 진행 중 시간대까지 허용하고, 예약은 시작 시각이 지나면 거부합니다.

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}운영 정책{% endblock %}
+{% block content %}
+<!--
+  US-15 운영 정책 (Sprint 2 스켈레톤) — 담당: US-15 담당자
+  초기값: GET /api/policies/current / 저장: PUT /api/admin/policies/current
+  운영 시간·예약 단위(D-11)는 수정하지 않음, 변경은 새 예약부터 적용 (D-45)
+-->
+{% include "admin/_nav.html" %}
+<h1>운영 정책</h1>
+<form id="policy-form" class="auth-form">
+  <label><input type="checkbox" name="exam_mode"> 시험 기간 정책 사용</label>
+  <label>평상시 예약 가능 일수 <input name="normal_days_ahead" type="number" min="0" max="30" required></label>
+  <label>평상시 최대 이용 시간 <input name="normal_max_hours" type="number" min="1" max="17" required></label>
+  <label>시험 기간 예약 가능 일수 <input name="exam_days_ahead" type="number" min="0" max="30" required></label>
+  <label>시험 기간 최대 이용 시간 <input name="exam_max_hours" type="number" min="1" max="17" required></label>
+  <label>체크인 제한 시간(분) <input name="check_in_minutes" type="number" min="1" max="60" required></label>
+  <label>노쇼 제한 기준 횟수 <input name="no_show_threshold" type="number" min="1" max="10" required></label>
+  <label>이용 제한 기간(일) <input name="restriction_days" type="number" min="1" max="30" required></label>
+  <button class="btn" type="submit">저장</button>
+</form>
+<p id="policy-message" role="status"></p>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='js/admin-policy.js') }}"></script>{% endblock %}

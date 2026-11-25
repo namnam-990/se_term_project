@@ -13,6 +13,36 @@ def test_pages_render(client):
         assert client.get(path).status_code == 200, path
 
 
+def test_sprint2_pages_render(client):
+    """Sprint 2 화면 틀 (스켈레톤) — 데이터는 각 화면 JS가 API로 불러온다."""
+    for path in ["/kiosk", "/admin", "/admin/users", "/admin/policy", "/admin/statistics"]:
+        assert client.get(path).status_code == 200, path
+
+
+def test_sprint2_apis_require_login(client):
+    """Sprint 2 API가 등록돼 있고(404 아님), 로그인 없이는 서비스(501)까지 가지 않는다.
+
+    GET은 401 AUTH_REQUIRED, POST·PUT·DELETE는 CSRF 검사가 먼저라 403 CSRF_FAILED.
+    """
+    calls = [
+        ("get", "/api/reservations/1/qr"),
+        ("post", "/api/reservations/1/check-in"),
+        ("post", "/api/reservations/1/checkout"),
+        ("post", "/api/admin/reservations/1/cancel"),
+        ("get", "/api/admin/dashboard"),
+        ("get", "/api/admin/users"),
+        ("put", "/api/admin/users/1/restriction"),
+        ("delete", "/api/admin/users/1/restriction"),
+        ("post", "/api/admin/users/1/no-shows/reset"),
+        ("put", "/api/admin/policies/current"),
+        ("get", "/api/admin/statistics?from=2026-11-20&to=2026-11-20"),
+        ("put", "/api/admin/users/1/role"),
+    ]
+    for method, path in calls:
+        expected = 401 if method == "get" else 403
+        assert getattr(client, method)(path).status_code == expected, (method, path)
+
+
 def test_protected_api_requires_login(client):
     res = client.get(
         "/api/seats", params={"start_at": "2026-11-20T10:00:00", "end_at": "2026-11-20T12:00:00"}

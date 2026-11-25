@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}관리자 대시보드{% endblock %}
+{% block content %}
+<!--
+  US-12 실시간 대시보드 (Sprint 2 스켈레톤) — 담당: US-12 담당자
+  GET /api/admin/dashboard → 이용 인원·잔여 좌석·가동률 + 축소 그리드 (D-42)
+  그리드는 3상태 고정: 빈 좌석 / 사용 중 / 체크인 대기 (학생 화면 4상태와 다름)
+-->
+{% include "admin/_nav.html" %}
+<h1>실시간 이용 현황</h1>
+<dl id="dashboard-metrics" class="metrics">
+  <div><dt>이용 인원</dt><dd id="metric-in-use">-</dd></div>
+  <div><dt>잔여 좌석</dt><dd id="metric-remaining">-</dd></div>
+  <div><dt>가동률</dt><dd id="metric-rate">-</dd></div>
+</dl>
+<ul class="seat-legend" aria-label="좌석 상태 범례">
+  <li class="seat EMPTY">빈 좌석</li>
+  <li class="seat IN_USE">사용 중</li>
+  <li class="seat WAITING">체크인 대기</li>
+</ul>
+<p id="dashboard-message" role="status"></p>
+<div id="dashboard-grid" class="seat-grid mini" aria-label="좌석 축소 그리드"></div>
+<button id="dashboard-refresh" class="btn secondary" type="button">새로고침</button>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='js/admin-dashboard.js') }}"></script>{% endblock %}

@@ -1,14 +1,31 @@
 """FastAPI 앱 진입점 — 라우터·예외 핸들러 등록만 한다."""
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.core.config import get_settings
 from app.core.exceptions import AppError, app_error_handler, validation_error_handler
-from app.routers import auth, pages, policies, reservations, seats
+from app.routers import admin, auth, checkin, pages, policies, reservations, seats
 
-app = FastAPI(title="LSRS — 도서관 좌석 예약 시스템", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """US-10: 노쇼 감지 스케줄러 시작·종료 (SCHEDULER_ENABLED=true일 때만, D-37)."""
+    scheduler = None
+    if get_settings().scheduler_enabled:
+        from app.core.scheduler import start_scheduler
+
+        scheduler = start_scheduler()
+    yield
+    if scheduler is not None:
+        scheduler.shutdown(wait=False)
+
+
+app = FastAPI(title="LSRS — 도서관 좌석 예약 시스템", version="0.2.0", lifespan=lifespan)
 
 app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
@@ -24,6 +41,8 @@ app.include_router(auth.router)
 app.include_router(seats.router)
 app.include_router(reservations.router)
 app.include_router(policies.router)
+app.include_router(checkin.router)  # Sprint 2: US-07·08
+app.include_router(admin.router)  # Sprint 2: US-11~17
 app.include_router(pages.router)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
